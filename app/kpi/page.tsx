@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import { fmtCurto } from "@/lib/datas";
@@ -36,7 +37,12 @@ export default function Kpi() {
   return (
     <main>
       <header className="sticky top-0 z-30 border-b border-borda bg-fundo/95 px-4 py-3 backdrop-blur">
-        <h1 className="text-xl font-bold">KPI da semana</h1>
+        <div className="flex items-baseline justify-between gap-2">
+          <h1 className="text-xl font-bold">KPI da semana</h1>
+          <Link href="/config" className="text-sm font-semibold text-marca underline">
+            Ajustes
+          </Link>
+        </div>
         {dados && (
           <p className="text-sm text-tinta-fraca">
             Semana de {fmtCurto(dados.semana.de)} · comparada com{" "}

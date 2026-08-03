@@ -23,9 +23,15 @@ import {
   type Roteiro,
 } from "@/lib/types";
 import { Icone } from "@/lib/icones";
+import { EditarDia } from "@/components/roteiro/EditarDia";
+import { EditarParada } from "@/components/roteiro/EditarParada";
+import { NovoDia } from "@/components/roteiro/NovoDia";
 
 export default function TelaRoteiro() {
   const [semana, setSemana] = useState<number | null>(null);
+  const [editandoDia, setEditandoDia] = useState(false);
+  const [paradaEmEdicao, setParadaEmEdicao] = useState<string | null>(null);
+  const [novoDiaAberto, setNovoDiaAberto] = useState(false);
   const [diaId, setDiaId] = useState<string | null>(null);
   const [editando, setEditando] = useState(false);
   const [addAberto, setAddAberto] = useState(false);
@@ -165,9 +171,19 @@ export default function TelaRoteiro() {
             <p className="text-xs font-semibold uppercase tracking-wide text-tinta-fraca">
               {fmtDiaExtenso(dia.data)}
             </p>
-            <h2 className="text-lg font-bold">
-              {dia.cidade} — {dia.titulo}
-            </h2>
+            <div className="flex items-start gap-2">
+              <h2 className="min-w-0 flex-1 text-lg font-bold">
+                {dia.cidade} — {dia.titulo}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setEditandoDia(true)}
+                aria-label="Editar título, cidade e observação do dia"
+                className="shrink-0 rounded-md border border-borda px-2 py-1.5 text-tinta-fraca"
+              >
+                <Icone nome="editar" tamanho={16} />
+              </button>
+            </div>
             {dia.observacao && (
               <p className="mt-1 rounded-md bg-carta px-3 py-2 text-sm text-tinta-fraca">
                 <Icone nome="info" tamanho={15} className="mr-1 inline-block -mt-0.5" />
@@ -204,7 +220,7 @@ export default function TelaRoteiro() {
                   <div className="flex items-start gap-2">
                     <span
                       className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
-                      style={{ background: p.concluida ? "#8a93a5" : "#0b3fa8" }}
+                      style={{ background: p.concluida ? "#8b8e94" : "#1f3d5c" }}
                     >
                       {p.concluida ? <Icone nome="check" tamanho={15} /> : p.ordem}
                     </span>
@@ -271,6 +287,15 @@ export default function TelaRoteiro() {
                       </button>
                       <button
                         type="button"
+                        aria-label={`Editar horário e objetivo de ${c.nome}`}
+                        onClick={() => setParadaEmEdicao(p.clienteId)}
+                        className="min-h-11 rounded-md border border-borda px-3 text-sm font-semibold"
+                      >
+                        <Icone nome="relogio" tamanho={16} className="mr-1" />
+                        Horário
+                      </button>
+                      <button
+                        type="button"
                         onClick={() =>
                           setTransferindo(transferindo === p.clienteId ? null : p.clienteId)
                         }
@@ -320,13 +345,22 @@ export default function TelaRoteiro() {
           </ol>
 
           {editando && (
-            <button
-              type="button"
-              onClick={() => setAddAberto(true)}
-              className="w-full rounded-lg border-2 border-dashed border-borda py-3 font-bold text-tinta-fraca"
-            >
-              + Adicionar cliente a este dia
-            </button>
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => setAddAberto(true)}
+                className="w-full rounded-md border border-dashed border-borda py-3 font-semibold text-tinta-fraca"
+              >
+                + Adicionar cliente a este dia
+              </button>
+              <button
+                type="button"
+                onClick={() => setNovoDiaAberto(true)}
+                className="w-full rounded-md border border-dashed border-borda py-3 font-semibold text-tinta-fraca"
+              >
+                + Criar outro dia de rua
+              </button>
+            </div>
           )}
 
           {dia.tardeLivre && (
@@ -444,6 +478,42 @@ export default function TelaRoteiro() {
           }}
         />
       )}
+
+      {novoDiaAberto && (
+        <NovoDia
+          cidadeSugerida={dia?.cidade ?? ""}
+          aoFechar={() => setNovoDiaAberto(false)}
+          aoCriado={(data) => {
+            setNovoDiaAberto(false);
+            avisar(`Dia de ${fmtCurto(data)} criado.`);
+          }}
+        />
+      )}
+
+      {editandoDia && dia && (
+        <EditarDia
+          dia={dia}
+          aoFechar={() => setEditandoDia(false)}
+          aoApagado={() => {
+            setEditandoDia(false);
+            avisar("Dia apagado.");
+          }}
+        />
+      )}
+
+      {paradaEmEdicao && dia && (() => {
+        const p = dia.paradas.find((x) => x.clienteId === paradaEmEdicao);
+        const c = p && porId.get(p.clienteId);
+        if (!p || !c) return null;
+        return (
+          <EditarParada
+            roteiroId={dia.id}
+            parada={p}
+            cliente={c}
+            aoFechar={() => setParadaEmEdicao(null)}
+          />
+        );
+      })()}
 
       {toast && (
         <p className="fixed bottom-24 left-1/2 z-[500] -translate-x-1/2 whitespace-nowrap rounded-full bg-tinta px-4 py-2 text-sm font-semibold text-white shadow-lg">

@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import { fmtData, fmtMoeda } from "@/lib/datas";
 import { FormPedido } from "@/components/vendas/FormPedido";
 import { Analise } from "@/components/vendas/Analise";
+import { EditarPedido } from "@/components/vendas/EditarPedido";
 import { EscolherCliente } from "@/components/registro/EscolherCliente";
 import {
   ICONE_TIPO_CLIENTE,
@@ -15,6 +16,7 @@ import {
   LABEL_PRODUTO,
   LABEL_STATUS_PEDIDO,
   type Cliente,
+  type Pedido,
 } from "@/lib/types";
 import { Icone } from "@/lib/icones";
 
@@ -25,6 +27,7 @@ function TelaVendas() {
   const [alvo, setAlvo] = useState<Cliente | null>(null);
   const [escolherAberto, setEscolherAberto] = useState(false);
   const [toast, setToast] = useState("");
+  const [pedidoEmEdicao, setPedidoEmEdicao] = useState<Pedido | null>(null);
 
   function avisar(m: string) {
     setToast(m);
@@ -103,13 +106,23 @@ function TelaVendas() {
                         {LABEL_STATUS_PEDIDO[p.status]}
                       </p>
                     </div>
-                    <span
-                      className={`shrink-0 font-bold ${
-                        p.status === "cancelado" ? "text-tinta-fraca line-through" : "text-marca"
-                      }`}
-                    >
-                      {fmtMoeda(p.valorTotal)}
-                    </span>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span
+                        className={`font-bold ${
+                          p.status === "cancelado" ? "text-tinta-fraca line-through" : "text-marca"
+                        }`}
+                      >
+                        {fmtMoeda(p.valorTotal)}
+                      </span>
+                      <button
+                        type="button"
+                        aria-label={`Editar pedido de ${c?.nome ?? "cliente removido"}`}
+                        onClick={() => setPedidoEmEdicao(p)}
+                        className="rounded-md border border-borda p-1.5 text-tinta-fraca"
+                      >
+                        <Icone nome="editar" tamanho={15} />
+                      </button>
+                    </div>
                   </div>
                   <ul className="mt-1 text-sm text-tinta-fraca">
                     {p.itens.map((i) => (
@@ -149,6 +162,14 @@ function TelaVendas() {
             setAlvo(null);
             avisar(`Pedido de ${fmtMoeda(v)} lançado.`);
           }}
+        />
+      )}
+
+      {pedidoEmEdicao && (
+        <EditarPedido
+          pedido={pedidoEmEdicao}
+          nomeCliente={porId.get(pedidoEmEdicao.clienteId)?.nome ?? "Cliente removido"}
+          aoFechar={() => setPedidoEmEdicao(null)}
         />
       )}
 

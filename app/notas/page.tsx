@@ -12,7 +12,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useLiveQuery } from "dexie-react-hooks";
-import { alternarNota, criarNota, db, removerNota } from "@/lib/db";
+import { alternarNota, atualizarNota, criarNota, db, removerNota } from "@/lib/db";
 import { fmtInstante, fmtRelativo } from "@/lib/datas";
 import { contemBusca, separarEtiquetas } from "@/lib/texto";
 import { EscolherCliente } from "@/components/registro/EscolherCliente";
@@ -35,6 +35,9 @@ export default function Notas() {
   // Apagar pede segunda confirmação no próprio botão — nota é coisa que ele
   // escreveu na rua e não dá para recuperar.
   const [confirmando, setConfirmando] = useState<string | null>(null);
+  // Nota em edição: id + rascunho. Editar no lugar evita abrir outra tela para
+  // corrigir uma palavra digitada errado na calçada.
+  const [editando, setEditando] = useState<{ id: string; texto: string } | null>(null);
 
   const notas = useLiveQuery(
     async () => (await db.notas.toArray()).sort((a, b) => b.criadoEm.localeCompare(a.criadoEm)),
@@ -240,13 +243,47 @@ export default function Notas() {
                       <Icone nome="check" tamanho={16} />
                     </button>
                     <div className="min-w-0 flex-1">
-                      <p
-                        className={`whitespace-pre-wrap break-words ${
-                          n.resolvida ? "line-through" : ""
-                        }`}
-                      >
-                        {n.texto}
-                      </p>
+                      {editando?.id === n.id ? (
+                        <div className="space-y-2">
+                          <textarea
+                            autoFocus
+                            rows={3}
+                            value={editando.texto}
+                            onChange={(e) => setEditando({ id: n.id, texto: e.target.value })}
+                            className="w-full rounded-md border border-borda bg-fundo p-2"
+                          />
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                const t = editando.texto.trim();
+                                if (t) await atualizarNota(n.id, { texto: t });
+                                setEditando(null);
+                              }}
+                              disabled={!editando.texto.trim()}
+                              className="min-h-11 flex-1 rounded-md bg-marca text-sm font-bold text-white disabled:opacity-40"
+                            >
+                              Salvar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditando(null)}
+                              className="min-h-11 flex-1 rounded-md border border-borda text-sm font-semibold text-tinta-fraca"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p
+                          onDoubleClick={() => setEditando({ id: n.id, texto: n.texto })}
+                          className={`whitespace-pre-wrap break-words ${
+                            n.resolvida ? "line-through" : ""
+                          }`}
+                        >
+                          {n.texto}
+                        </p>
+                      )}
                       <p className="mt-1 text-xs text-tinta-fraca">
                         <time dateTime={n.criadoEm} title={fmtInstante(n.criadoEm)}>
                           {fmtRelativo(n.criadoEm)}
@@ -277,6 +314,14 @@ export default function Notas() {
                         </div>
                       )}
                     </div>
+                    <button
+                      type="button"
+                      aria-label="Editar nota"
+                      onClick={() => setEditando({ id: n.id, texto: n.texto })}
+                      className="shrink-0 self-start rounded-md px-2 text-tinta-fraca"
+                    >
+                      <Icone nome="editar" tamanho={16} />
+                    </button>
                     <button
                       type="button"
                       onClick={() => {

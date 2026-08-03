@@ -16,7 +16,15 @@
  */
 
 import Dexie, { type Table } from "dexie";
-import { addDias, agora, hoje, paraCivil, segundaDaSemana } from "./datas";
+import {
+  addDias,
+  agora,
+  diaSemanaDe,
+  diffDias,
+  hoje,
+  paraCivil,
+  segundaDaSemana,
+} from "./datas";
 import { gerarSemana, type ResultadoGeracao } from "./gerador";
 import {
   CONFIG_PADRAO,
@@ -31,6 +39,7 @@ import {
   type Meta,
   type Nota,
   type ParadaRoteiro,
+  type DataCivil,
   type Pedido,
   type Roteiro,
   type Tarefa,
@@ -413,6 +422,149 @@ export async function alternarNota(id: string): Promise<void> {
 
 export async function removerNota(id: string): Promise<void> {
   await db.notas.delete(id);
+}
+
+export async function atualizarNota(
+  id: string,
+  patch: Partial<Pick<Nota, "texto" | "tags" | "clienteId" | "resolvida">>,
+): Promise<void> {
+  await db.notas.update(id, patch);
+}
+
+// ---------------------------------------------------------------------------
+// Edição livre (o usuário manda no próprio plano)
+// ---------------------------------------------------------------------------
+
+/**
+ * O roteiro é uma sugestão, não uma ordem. Tudo o que o motor de geração
+ * escreve, ele tem de poder reescrever: título, cidade, observação, horário e
+ * objetivo de cada parada — e apagar o dia inteiro, se a semana virou.
+ */
+export async function atualizarRoteiro(
+  id: string,
+  patch: Partial<Pick<Roteiro, "titulo" | "cidade" | "observacao" | "tardeLivre">>,
+): Promise<void> {
+  await db.roteiros.update(id, patch);
+}
+
+export async function atualizarParada(
+  roteiroId: string,
+  clienteId: string,
+  patch: Partial<Pick<ParadaRoteiro, "horarioSugerido" | "objetivo">>,
+): Promise<void> {
+  const r = await db.roteiros.get(roteiroId);
+  if (!r) return;
+  await db.roteiros.update(roteiroId, {
+    paradas: r.paradas.map((p) => (p.clienteId === clienteId ? { ...p, ...patch } : p)),
+  });
+}
+
+/** Desmarca uma parada concluída — para quando o registro foi engano. */
+export async function reabrirParada(roteiroId: string, clienteId: string): Promise<void> {
+  const r = await db.roteiros.get(roteiroId);
+  if (!r) return;
+  await db.roteiros.update(roteiroId, {
+    paradas: r.paradas.map((p) =>
+      p.clienteId === clienteId ? { ...p, concluida: false, interacaoId: undefined } : p,
+    ),
+  });
+}
+
+export async function removerRoteiro(id: string): Promise<void> {
+  await db.roteiros.delete(id);
+}
+
+/**
+ * Cria um dia vazio. `data` define semana e dia automaticamente para não abrir
+ * espaço para um dia cuja data não combina com o rótulo.
+ */
+export async function criarDiaRoteiro(entrada: {
+  data: DataCivil;
+  cidade: string;
+  titulo: string;
+}): Promise<Roteiro | null> {
+  const diaSemana = diaSemanaDe(entrada.data);
+  if (diaSemana === 0) throw new Error("O roteiro só prevê dias úteis.");
+  if (await db.roteiros.where("data").equals(entrada.data).first()) {
+    throw new Error("Já existe um dia com essa data.");
+  }
+
+  // A semana segue a numeração de quem já existe: conta as segundas de distância
+  // desde a primeira semana cadastrada.
+  const existentes = await db.roteiros.toArray();
+  let semana = 1;
+  if (existentes.length) {
+    const base = existentes.reduce((m, r) => (r.data < m.data ? r : m), existentes[0]);
+    const passos = Math.floor(
+      diffDias(segundaDaSemana(base.data), segundaDaSemana(entrada.data)) / 7,
+    );
+    semana = base.semana + passos;
+  }
+
+  const novo: Roteiro = {
+    id: novoId(),
+    semana,
+    diaSemana,
+    data: entrada.data,
+    cidade: entrada.cidade,
+    titulo: entrada.titulo,
+    paradas: [],
+    tardeLivre: diaSemana === 5,
+  };
+  await db.roteiros.add(novo);
+  return novo;
+}
+
+/** Status do pedido muda com o faturamento; cancelar tira da receita. */
+export async function atualizarPedido(
+  id: string,
+  patch: Partial<Pick<Pedido, "status" | "formaPagamento" | "prazoDias" | "observacoes" | "data">>,
+): Promise<void> {
+  await db.pedidos.update(id, patch);
+}
+
+export async function removerPedido(id: string): Promise<void> {
+  await db.pedidos.delete(id);
+}
+
+export async function atualizarTarefa(
+  id: string,
+  patch: Partial<Pick<Tarefa, "titulo" | "vencimentoEm">>,
+): Promise<void> {
+  await db.tarefas.update(id, patch);
+}
+
+export async function removerTarefa(id: string): Promise<void> {
+  await db.tarefas.delete(id);
+}
+
+/**
+ * Apaga uma interação registrada por engano, junto com o que ela criou.
+ *
+ * O estágio do cliente NÃO volta atrás: `estagioSugerido` só avança e não há
+ * como saber qual era o anterior sem guardar histórico de estágio. A tela avisa
+ * isso — corrigir o estágio é um toque no quadro ou na ficha.
+ */
+export async function removerInteracao(id: string): Promise<void> {
+  await db.transaction("rw", db.interacoes, db.tarefas, db.roteiros, async () => {
+    const i = await db.interacoes.get(id);
+    if (!i) return;
+
+    await db.tarefas.where("interacaoId").equals(id).delete();
+
+    if (i.roteiroId) {
+      const r = await db.roteiros.get(i.roteiroId);
+      if (r) {
+        await db.roteiros.update(r.id, {
+          paradas: r.paradas.map((p) =>
+            p.interacaoId === id ? { ...p, concluida: false, interacaoId: undefined } : p,
+          ),
+        });
+      }
+    }
+
+    await db.interacoes.delete(id);
+  });
 }
 
 // ---------------------------------------------------------------------------
