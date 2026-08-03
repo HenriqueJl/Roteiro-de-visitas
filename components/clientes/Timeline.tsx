@@ -9,12 +9,13 @@ import {
   LABEL_TIPO_INTERACAO,
   type Interacao,
 } from "@/lib/types";
+import { Icone } from "@/lib/icones";
 
 /** Histórico em ordem inversa — o que aconteceu, do mais recente ao mais antigo. */
 export function Timeline({ interacoes }: { interacoes: Interacao[] }) {
   if (interacoes.length === 0) {
     return (
-      <p className="rounded-xl border border-borda bg-carta p-4 text-center text-sm text-tinta-fraca">
+      <p className="rounded-lg border border-borda bg-carta p-4 text-center text-sm text-tinta-fraca">
         Nenhuma interação registrada ainda.
       </p>
     );
@@ -23,9 +24,9 @@ export function Timeline({ interacoes }: { interacoes: Interacao[] }) {
   return (
     <ol className="space-y-2">
       {interacoes.map((i) => (
-        <li key={i.id} className="rounded-xl border border-borda bg-carta p-3">
+        <li key={i.id} className="rounded-lg border border-borda bg-carta p-3">
           <div className="flex items-baseline gap-2">
-            <span aria-hidden>{ICONE_RESULTADO[i.resultado]}</span>
+            <Icone nome={ICONE_RESULTADO[i.resultado]} className="mt-0.5 text-tinta-fraca" />
             <span className="font-bold">{LABEL_RESULTADO[i.resultado]}</span>
             <span className="text-sm text-tinta-fraca">
               {LABEL_TIPO_INTERACAO[i.tipo]}
@@ -37,7 +38,7 @@ export function Timeline({ interacoes }: { interacoes: Interacao[] }) {
 
           {i.contatoFalado?.nome && (
             <p className="mt-1 text-sm">
-              👤 {i.contatoFalado.nome}
+              <Icone nome="pessoa" tamanho={14} className="inline-block -mt-0.5 mr-1" /> {i.contatoFalado.nome}
               {i.contatoFalado.cargo && ` — ${i.contatoFalado.cargo}`}
             </p>
           )}
@@ -59,7 +60,7 @@ export function Timeline({ interacoes }: { interacoes: Interacao[] }) {
 
           {i.amostraDeixada && (
             <p className="mt-1 text-sm">
-              🎁 Amostra: {LABEL_PRODUTO[i.amostraDeixada.produto]} ({i.amostraDeixada.qtd}) ·
+              <Icone nome="amostra" tamanho={14} className="inline-block -mt-0.5 mr-1" /> Amostra: {LABEL_PRODUTO[i.amostraDeixada.produto]} ({i.amostraDeixada.qtd}) ·
               retorno {fmtPrazo(i.amostraDeixada.retornoEm)}
             </p>
           )}
@@ -73,7 +74,8 @@ export function Timeline({ interacoes }: { interacoes: Interacao[] }) {
           ) : (
             i.proximoPasso && (
               <p className="mt-2 border-t border-borda pt-2 text-sm">
-                → {i.proximoPasso}
+                <Icone nome="seta-direita" tamanho={13} className="inline-block -mt-0.5 mr-1" />
+            {i.proximoPasso}
                 {i.proximoPassoEm && (
                   <span className="text-tinta-fraca"> ({fmtPrazo(i.proximoPassoEm)})</span>
                 )}

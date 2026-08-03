@@ -73,7 +73,7 @@ export function Analise({
               role="tab"
               aria-selected={ativo}
               onClick={() => setChave(p.chave)}
-              className={`flex-1 rounded-lg py-2 text-sm font-semibold ${
+              className={`flex-1 rounded-md py-2 text-sm font-semibold ${
                 ativo
                   ? "bg-marca text-white"
                   : "border border-borda bg-carta text-tinta-fraca active:bg-fundo"
@@ -87,17 +87,17 @@ export function Analise({
 
       {/* Cabeçalho: faturamento, nº de pedidos, ticket médio. */}
       <section className="grid grid-cols-3 gap-2">
-        <div className="rounded-xl border border-borda bg-carta px-3 py-3 text-center">
+        <div className="rounded-lg border border-borda bg-carta px-3 py-3 text-center">
           <p className="text-xs font-semibold uppercase text-tinta-fraca">Faturado</p>
           <p className="mt-0.5 text-lg font-bold leading-tight text-marca">
             {fmtMoeda(dados.totais.faturamento)}
           </p>
         </div>
-        <div className="rounded-xl border border-borda bg-carta px-3 py-3 text-center">
+        <div className="rounded-lg border border-borda bg-carta px-3 py-3 text-center">
           <p className="text-xs font-semibold uppercase text-tinta-fraca">Pedidos</p>
           <p className="mt-0.5 text-lg font-bold leading-tight">{dados.totais.pedidos}</p>
         </div>
-        <div className="rounded-xl border border-borda bg-carta px-3 py-3 text-center">
+        <div className="rounded-lg border border-borda bg-carta px-3 py-3 text-center">
           <p className="text-xs font-semibold uppercase text-tinta-fraca">Ticket</p>
           <p className="mt-0.5 text-lg font-bold leading-tight">
             {fmtMoeda(dados.totais.ticket)}

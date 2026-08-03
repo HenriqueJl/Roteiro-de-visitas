@@ -9,38 +9,50 @@
    tinta quase preta, acentos saturados e escuros.
    --------------------------------------------------------------- */
 @theme {
-  --color-fundo: #f4f5f7;
+  /* ---------------------------------------------------------------
+     Paleta sóbria. Os cinzas são neutros, não azulados, e os acentos
+     são dessaturados: a cor entra para significar algo (alerta, marca,
+     dado), nunca para decorar. Contraste preservado para leitura sob
+     sol — a tinta sobre o fundo passa de 15:1.
+     --------------------------------------------------------------- */
+  --color-fundo: #f4f4f3;
   --color-carta: #ffffff;
-  --color-tinta: #0d1220;
-  --color-tinta-fraca: #4a5468;
-  --color-borda: #d3d8e0;
+  --color-tinta: #17181b;
+  --color-tinta-fraca: #5c6069;
+  --color-borda: #dcdcda;
 
-  --color-marca: #0b3fa8;
-  --color-marca-forte: #082e7d;
+  /* Azul-marinho contido no lugar do azul-real: branco sobre ele dá 11:1. */
+  --color-marca: #1f3d5c;
+  --color-marca-forte: #162c43;
 
-  --color-ok: #0f6b33;
-  --color-alerta: #9a4b00;
-  --color-perigo: #a30d18;
+  --color-ok: #2c6146;
+  --color-alerta: #8a5a1f;
+  --color-perigo: #8c2f2f;
 
   /* --- Gráficos ---
      Toda análise da seção 6.5 é comparação de magnitude com série única, então
      não há paleta categórica aqui: uma cor por gráfico, e o comprimento da
-     barra é que carrega o valor. Pintar barra de categoria nominal com rampa
-     de valor duplicaria a informação e queimaria o único canal livre.
-     `--color-serie` passa nos cinco testes do validador sobre o branco do
-     cartão (banda de luminosidade, piso de croma, contraste ≥ 3:1). */
-  --color-serie: #2f6fd0;
-  --color-serie-fraca: #c9dbf5;
-  --color-grade: #e6e8ec;
-  --color-eixo: #8a93a5;
+     barra é que carrega o valor.
 
-  /* cores por tipo de cliente — usadas em marcadores de mapa e etiquetas */
-  --color-t-hospital: #a30d18;
-  --color-t-loja: #6b21a8;
-  --color-t-petshop: #0f6b33;
-  --color-t-vet: #0e6f7a;
-  --color-t-racao: #8a5a00;
-  --color-t-distribuidor: #3730a3;
+     Esta é a única cor que NÃO acompanhou a dessaturação do resto. Os tons
+     sóbrios que testei (#3f6f9f, #4a749e, #2f5e8a) reprovaram no piso de croma
+     do validador: num gráfico eles leem como cinza, e aí a barra deixa de
+     parecer dado. `--color-serie` é o tom mais contido que ainda passa nos
+     cinco testes sobre o branco do cartão. */
+  --color-serie: #26689e;
+  --color-serie-fraca: #cfdce8;
+  --color-grade: #e7e7e5;
+  --color-eixo: #8b8e94;
+
+  /* Cores por tipo de cliente — marcadores de mapa e etiquetas. Dessaturadas
+     junto com o resto; distinguíveis entre si, mas nunca a única pista (o
+     ícone e o rótulo vêm sempre ao lado). */
+  --color-t-hospital: #8c2f2f;
+  --color-t-loja: #5b3a7a;
+  --color-t-petshop: #2c6146;
+  --color-t-vet: #1f5b63;
+  --color-t-racao: #7a5320;
+  --color-t-distribuidor: #35406b;
 }
 
 html,

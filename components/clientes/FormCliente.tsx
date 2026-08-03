@@ -18,7 +18,7 @@ import {
   type TipoCliente,
 } from "@/lib/types";
 
-const campo = "w-full rounded-lg border border-borda bg-fundo p-3";
+const campo = "w-full rounded-md border border-borda bg-fundo p-3";
 
 export function FormCliente({
   inicial,
@@ -227,13 +227,13 @@ export function FormCliente({
           <button
             type="button"
             onClick={capturarGps}
-            className="w-full rounded-lg border border-borda py-2.5 text-sm font-semibold"
+            className="w-full rounded-md border border-borda py-2.5 text-sm font-semibold"
           >
             {gpsEstado === "buscando"
-              ? "📍 Buscando sinal…"
+              ? "Buscando sinal…"
               : lat != null
-                ? `📍 Localização capturada (${lat.toFixed(5)}, ${lng!.toFixed(5)}) — capturar de novo`
-                : "📍 Capturar localização (fique na porta)"}
+                ? `Localização capturada (${lat.toFixed(5)}, ${lng!.toFixed(5)}) — capturar de novo`
+                : "Capturar localização (fique na porta)"}
           </button>
           {gpsEstado === "erro" && (
             <p className="text-center text-sm text-alerta">
@@ -245,7 +245,7 @@ export function FormCliente({
             type="button"
             onClick={salvar}
             disabled={!nome.trim() || !cidade.trim() || salvando}
-            className="w-full rounded-xl bg-marca py-3.5 text-lg font-bold text-white disabled:opacity-40"
+            className="w-full rounded-lg bg-marca py-3.5 text-lg font-bold text-white disabled:opacity-40"
           >
             {salvando ? "Salvando…" : "Salvar"}
           </button>

@@ -32,7 +32,7 @@ function icone(numero: number, cor: string, concluida: boolean) {
       border:3px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.4);
       color:#fff;font:700 14px/24px system-ui,sans-serif;text-align:center;
       ${concluida ? "opacity:.75" : ""}
-    ">${concluida ? "✓" : numero}</div>`,
+    ">${concluida ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 12.8l4.6 4.6L19.2 7.4"/></svg>' : numero}</div>`,
     iconSize: [30, 30],
     iconAnchor: [15, 15],
     popupAnchor: [0, -16],
@@ -76,7 +76,7 @@ export default function MapaDia({ pontos }: { pontos: PontoParada[] }) {
         center={[centro.lat, centro.lng]}
         zoom={14}
         scrollWheelZoom={false}
-        className="h-64 w-full rounded-xl"
+        className="h-64 w-full rounded-lg"
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

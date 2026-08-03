@@ -38,13 +38,13 @@ export function NotaRapida({
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
           placeholder="O que você não pode esquecer?"
-          className="mt-3 w-full rounded-lg border border-borda bg-fundo p-3"
+          className="mt-3 w-full rounded-md border border-borda bg-fundo p-3"
         />
         <div className="mt-3 flex gap-2">
           <button
             type="button"
             onClick={aoFechar}
-            className="flex-1 rounded-lg border border-borda font-semibold"
+            className="flex-1 rounded-md border border-borda font-semibold"
           >
             Cancelar
           </button>
@@ -52,7 +52,7 @@ export function NotaRapida({
             type="button"
             onClick={salvar}
             disabled={!texto.trim()}
-            className="flex-1 rounded-lg bg-marca font-bold text-white disabled:opacity-40"
+            className="flex-1 rounded-md bg-marca font-bold text-white disabled:opacity-40"
           >
             Salvar
           </button>

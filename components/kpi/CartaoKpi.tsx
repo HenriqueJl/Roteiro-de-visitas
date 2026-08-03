@@ -12,6 +12,7 @@
  */
 
 import { fmtMoeda } from "@/lib/datas";
+import { Icone } from "@/lib/icones";
 
 export type Unidade = "numero" | "moeda" | "porcento";
 
@@ -49,7 +50,7 @@ export function CartaoKpi({
   const igual = unidade === "porcento" ? Math.round(delta) === 0 : delta === 0;
 
   return (
-    <section className="rounded-xl border border-borda bg-carta px-3 py-3">
+    <section className="rounded-lg border border-borda bg-carta px-3 py-3">
       <p className="text-xs font-semibold uppercase leading-tight text-tinta-fraca">
         {rotulo}
       </p>
@@ -64,7 +65,7 @@ export function CartaoKpi({
       >
         {igual ? "= igual" : (
           <>
-            <span aria-hidden>{delta > 0 ? "▲" : "▼"} </span>
+            <Icone nome={delta > 0 ? "subiu" : "desceu"} tamanho={13} className="inline-block -mt-0.5 mr-0.5" />
             {formatarDelta(delta, unidade)}
           </>
         )}
@@ -87,7 +88,7 @@ export function CartaoAgora({
   detalhe?: string;
 }) {
   return (
-    <section className="rounded-xl border border-borda bg-carta px-3 py-3">
+    <section className="rounded-lg border border-borda bg-carta px-3 py-3">
       <p className="text-xs font-semibold uppercase leading-tight text-tinta-fraca">
         {rotulo}
       </p>

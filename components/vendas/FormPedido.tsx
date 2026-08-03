@@ -27,7 +27,7 @@ import {
   type StatusPedido,
 } from "@/lib/types";
 
-const campo = "w-full rounded-lg border border-borda bg-fundo p-3";
+const campo = "w-full rounded-md border border-borda bg-fundo p-3";
 
 /** Aceita "12,50" e "12.50" — o teclado do celular oferece vírgula. */
 function paraNumero(t: string): number {
@@ -154,7 +154,7 @@ export function FormPedido({
           </div>
 
           {itens.map((i) => (
-            <div key={i.produto} className="rounded-xl border border-borda bg-fundo/60 p-3">
+            <div key={i.produto} className="rounded-lg border border-borda bg-fundo/60 p-3">
               <div className="flex items-baseline justify-between">
                 <p className="font-bold">{LABEL_PRODUTO[i.produto]}</p>
                 <p className="font-bold">{fmtMoeda(valorItem(i))}</p>
@@ -211,7 +211,7 @@ export function FormPedido({
 
           {itens.length > 0 && (
             <>
-              <div className="flex items-baseline justify-between rounded-xl bg-fundo px-4 py-3">
+              <div className="flex items-baseline justify-between rounded-lg bg-fundo px-4 py-3">
                 <span className="font-bold">Total</span>
                 <span className="text-2xl font-bold text-marca">{fmtMoeda(total)}</span>
               </div>
@@ -294,7 +294,7 @@ export function FormPedido({
             type="button"
             onClick={salvar}
             disabled={itens.length === 0 || salvando}
-            className="w-full rounded-xl bg-marca py-3.5 text-lg font-bold text-white disabled:opacity-40"
+            className="w-full rounded-lg bg-marca py-3.5 text-lg font-bold text-white disabled:opacity-40"
           >
             {salvando ? "Salvando…" : `Salvar pedido — ${fmtMoeda(total)}`}
           </button>

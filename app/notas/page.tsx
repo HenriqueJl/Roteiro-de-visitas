@@ -17,6 +17,7 @@ import { fmtInstante, fmtRelativo } from "@/lib/datas";
 import { contemBusca, separarEtiquetas } from "@/lib/texto";
 import { EscolherCliente } from "@/components/registro/EscolherCliente";
 import { ICONE_TIPO_CLIENTE, type Cliente } from "@/lib/types";
+import { Icone } from "@/lib/icones";
 
 export default function Notas() {
   // --- captura ---
@@ -74,7 +75,7 @@ export default function Notas() {
   }
 
   const chip = (ativo: boolean) =>
-    `rounded-full px-3 py-1.5 text-sm font-semibold ${
+    `rounded-md px-3 py-1.5 text-sm font-semibold ${
       ativo ? "bg-marca text-white" : "border border-borda bg-carta text-tinta-fraca"
     }`;
 
@@ -86,13 +87,13 @@ export default function Notas() {
 
       <div className="space-y-3 px-4 py-3">
         {/* --- captura --- */}
-        <section className="rounded-xl border border-borda bg-carta p-3">
+        <section className="rounded-lg border border-borda bg-carta p-3">
           <textarea
             rows={3}
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
             placeholder="O que você não pode esquecer?"
-            className="w-full rounded-lg border border-borda bg-fundo p-3"
+            className="w-full rounded-md border border-borda bg-fundo p-3"
           />
 
           {detalhes && (
@@ -100,11 +101,12 @@ export default function Notas() {
               <button
                 type="button"
                 onClick={() => setEscolhendo(true)}
-                className="w-full rounded-lg border border-borda px-3 py-2.5 text-left text-sm font-semibold"
+                className="w-full rounded-md border border-borda px-3 py-2.5 text-left text-sm font-semibold"
               >
                 {cliente ? (
                   <>
-                    {ICONE_TIPO_CLIENTE[cliente.tipo]} {cliente.nome}
+                    <Icone nome={ICONE_TIPO_CLIENTE[cliente.tipo]} className="inline-block -mt-0.5 mr-1 text-tinta-fraca" />
+                    {cliente.nome}
                   </>
                 ) : (
                   "Vincular a um cliente…"
@@ -123,7 +125,7 @@ export default function Notas() {
                 value={etiquetas}
                 onChange={(e) => setEtiquetas(e.target.value)}
                 placeholder="Etiquetas, separadas por vírgula"
-                className="w-full rounded-lg border border-borda bg-fundo p-3"
+                className="w-full rounded-md border border-borda bg-fundo p-3"
               />
               {todasEtiquetas.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
@@ -136,7 +138,7 @@ export default function Notas() {
                           separarEtiquetas(`${atual},${t}`).join(", "),
                         )
                       }
-                      className="rounded-full border border-borda px-2.5 py-1 text-xs font-semibold text-tinta-fraca"
+                      className="rounded-md border border-borda px-2.5 py-1 text-xs font-semibold text-tinta-fraca"
                     >
                       + {t}
                     </button>
@@ -150,7 +152,7 @@ export default function Notas() {
             <button
               type="button"
               onClick={() => setDetalhes((v) => !v)}
-              className="rounded-lg border border-borda px-3 text-sm font-semibold text-tinta-fraca"
+              className="rounded-md border border-borda px-3 text-sm font-semibold text-tinta-fraca"
             >
               {detalhes ? "Menos" : "Detalhes"}
             </button>
@@ -158,7 +160,7 @@ export default function Notas() {
               type="button"
               onClick={salvar}
               disabled={!texto.trim()}
-              className="flex-1 rounded-lg bg-marca font-bold text-white disabled:opacity-40"
+              className="flex-1 rounded-md bg-marca font-bold text-white disabled:opacity-40"
             >
               Salvar nota
             </button>
@@ -170,7 +172,7 @@ export default function Notas() {
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar nas notas"
-          className="w-full rounded-lg border border-borda bg-carta p-3"
+          className="w-full rounded-md border border-borda bg-carta p-3"
         />
 
         {(todasEtiquetas.length > 0 || resolvidas > 0) && (
@@ -207,7 +209,7 @@ export default function Notas() {
         {notas === undefined ? (
           <p className="py-8 text-center text-tinta-fraca">Carregando…</p>
         ) : visiveis.length === 0 ? (
-          <p className="rounded-xl border border-borda bg-carta p-6 text-center text-sm text-tinta-fraca">
+          <p className="rounded-lg border border-borda bg-carta p-6 text-center text-sm text-tinta-fraca">
             {(notas.length === 0
               ? "Nenhuma nota ainda."
               : "Nenhuma nota com esse filtro.")}
@@ -219,7 +221,7 @@ export default function Notas() {
               return (
                 <li
                   key={n.id}
-                  className={`rounded-xl border border-borda bg-carta p-3 ${
+                  className={`rounded-lg border border-borda bg-carta p-3 ${
                     n.resolvida ? "opacity-60" : ""
                   }`}
                 >
@@ -235,7 +237,7 @@ export default function Notas() {
                       }`}
                       style={{ minHeight: 28 }}
                     >
-                      ✓
+                      <Icone nome="check" tamanho={16} />
                     </button>
                     <div className="min-w-0 flex-1">
                       <p
@@ -253,7 +255,8 @@ export default function Notas() {
                           <>
                             {" · "}
                             <Link href={`/clientes/ficha?id=${c.id}`} className="underline">
-                              {ICONE_TIPO_CLIENTE[c.tipo]} {c.nome}
+                              <Icone nome={ICONE_TIPO_CLIENTE[c.tipo]} className="inline-block -mt-0.5 mr-1 text-tinta-fraca" />
+                              {c.nome}
                             </Link>
                           </>
                         )}
@@ -265,7 +268,7 @@ export default function Notas() {
                               key={t}
                               type="button"
                               onClick={() => setEtiqueta(t)}
-                              className="rounded-full bg-fundo px-2 py-0.5 text-xs font-semibold text-tinta-fraca"
+                              className="rounded-md bg-fundo px-2 py-0.5 text-xs font-semibold text-tinta-fraca"
                               style={{ minHeight: 0 }}
                             >
                               {t}
@@ -285,11 +288,11 @@ export default function Notas() {
                         }
                       }}
                       onBlur={() => setConfirmando((a) => (a === n.id ? null : a))}
-                      className={`shrink-0 self-start rounded-lg px-2 text-sm font-bold ${
+                      className={`shrink-0 self-start rounded-md px-2 text-sm font-bold ${
                         confirmando === n.id ? "bg-perigo text-white" : "text-tinta-fraca"
                       }`}
                     >
-                      {confirmando === n.id ? "Apagar?" : "🗑"}
+                      {confirmando === n.id ? "Apagar?" : <Icone nome="lixeira" tamanho={17} />}
                     </button>
                   </div>
                 </li>

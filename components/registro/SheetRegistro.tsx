@@ -20,6 +20,7 @@ import {
 } from "@/lib/db";
 import { ATALHOS_DATA, addDias, hoje } from "@/lib/datas";
 import { sugestoesProximoPasso } from "@/lib/sugestoes";
+import { Icone } from "@/lib/icones";
 import {
   ICONE_RESULTADO,
   LABEL_OBJECAO,
@@ -48,10 +49,11 @@ export interface AlvoRegistro {
 
 type Etapa = 1 | 2 | 3;
 
-const campo = "w-full rounded-lg border border-borda bg-fundo p-3";
+const campo = "w-full rounded-md border border-borda bg-fundo p-3";
 const chip =
-  "rounded-full border border-borda bg-fundo px-3 py-2 text-sm font-medium text-left";
-const chipAtivo = "rounded-full border border-marca bg-marca px-3 py-2 text-sm font-medium text-white text-left";
+  "rounded-md border border-borda bg-fundo px-3 py-2 text-sm font-medium text-left";
+const chipAtivo =
+  "rounded-md border border-marca bg-marca px-3 py-2 text-sm font-medium text-white text-left";
 
 export function SheetRegistro({
   alvo,
@@ -183,7 +185,7 @@ export function SheetRegistro({
               }}
               className="w-10 shrink-0 text-xl font-bold"
             >
-              ←
+              <Icone nome="seta-esquerda" tamanho={22} />
             </button>
           )}
           <div className="min-w-0 flex-1">
@@ -217,12 +219,12 @@ export function SheetRegistro({
                   key={r}
                   type="button"
                   onClick={() => escolherResultado(r)}
-                  className={`flex min-h-20 flex-col items-center justify-center gap-1 rounded-xl border p-2 text-center font-bold ${
+                  className={`flex min-h-20 flex-col items-center justify-center gap-1 rounded-lg border p-2 text-center font-bold ${
                     resultado === r ? "border-marca bg-marca text-white" : "border-borda bg-fundo"
                   }`}
                 >
                   <span aria-hidden className="text-2xl">
-                    {ICONE_RESULTADO[r]}
+                    <Icone nome={ICONE_RESULTADO[r]} tamanho={24} />
                   </span>
                   <span className="text-sm leading-tight">{LABEL_RESULTADO[r]}</span>
                 </button>
@@ -239,7 +241,7 @@ export function SheetRegistro({
                     key={o}
                     type="button"
                     onClick={() => escolherObjecao(o)}
-                    className={`min-h-14 rounded-xl border p-2 text-sm font-semibold leading-tight ${
+                    className={`min-h-14 rounded-lg border p-2 text-sm font-semibold leading-tight ${
                       objecao === o ? "border-marca bg-marca text-white" : "border-borda bg-fundo"
                     }`}
                   >
@@ -250,7 +252,7 @@ export function SheetRegistro({
               <button
                 type="button"
                 onClick={() => escolherObjecao(null)}
-                className="mt-3 w-full rounded-xl border border-borda py-3 font-semibold text-tinta-fraca"
+                className="mt-3 w-full rounded-lg border border-borda py-3 font-semibold text-tinta-fraca"
               >
                 Pular — nada travou
               </button>
@@ -296,7 +298,7 @@ export function SheetRegistro({
                         key={a.rotulo}
                         type="button"
                         onClick={() => setProximoPassoEm(data)}
-                        className={`rounded-lg border px-1 py-2.5 text-xs font-bold ${
+                        className={`rounded-md border px-1 py-2.5 text-xs font-bold ${
                           ativo ? "border-marca bg-marca text-white" : "border-borda bg-fundo"
                         }`}
                       >
@@ -320,13 +322,14 @@ export function SheetRegistro({
                 type="button"
                 onClick={() => setDetalhesAbertos((v) => !v)}
                 aria-expanded={detalhesAbertos}
-                className="w-full rounded-lg border border-borda py-2.5 text-sm font-semibold text-tinta-fraca"
+                className="w-full rounded-md border border-borda py-2.5 text-sm font-semibold text-tinta-fraca"
               >
-                {detalhesAbertos ? "Ocultar detalhes ▴" : "Adicionar detalhes ▾"}
+                {detalhesAbertos ? "Ocultar detalhes" : "Adicionar detalhes"}
+                <Icone nome={detalhesAbertos ? "seta-cima" : "seta-baixo"} tamanho={15} className="ml-1 inline-block -mt-0.5" />
               </button>
 
               {detalhesAbertos && (
-                <div className="space-y-4 rounded-xl border border-borda bg-fundo/60 p-3">
+                <div className="space-y-4 rounded-lg border border-borda bg-fundo/60 p-3">
                   <div>
                     <p className="text-sm font-bold">Tipo</p>
                     <div className="mt-1 flex flex-wrap gap-2">
@@ -395,7 +398,7 @@ export function SheetRegistro({
                             type="button"
                             aria-label="Diminuir quantidade"
                             onClick={() => setAmostraQtd((q) => Math.max(1, q - 1))}
-                            className="h-11 w-11 rounded-lg border border-borda bg-carta text-xl font-bold"
+                            className="h-11 w-11 rounded-md border border-borda bg-carta text-xl font-bold"
                           >
                             −
                           </button>
@@ -404,7 +407,7 @@ export function SheetRegistro({
                             type="button"
                             aria-label="Aumentar quantidade"
                             onClick={() => setAmostraQtd((q) => q + 1)}
-                            className="h-11 w-11 rounded-lg border border-borda bg-carta text-xl font-bold"
+                            className="h-11 w-11 rounded-md border border-borda bg-carta text-xl font-bold"
                           >
                             +
                           </button>
@@ -478,7 +481,7 @@ export function SheetRegistro({
                 type="button"
                 onClick={salvar}
                 disabled={!!erroValidacao || salvando}
-                className="w-full rounded-xl bg-marca py-3.5 text-lg font-bold text-white disabled:opacity-40"
+                className="w-full rounded-lg bg-marca py-3.5 text-lg font-bold text-white disabled:opacity-40"
               >
                 {salvando ? "Salvando…" : "Salvar"}
               </button>
@@ -517,7 +520,7 @@ export function SheetRegistro({
                     key={valor}
                     type="button"
                     onClick={() => setEncStatus(valor)}
-                    className={`min-h-12 rounded-xl border font-bold ${
+                    className={`min-h-12 rounded-lg border font-bold ${
                       encStatus === valor
                         ? "border-perigo bg-perigo text-white"
                         : "border-borda bg-fundo"
@@ -544,7 +547,7 @@ export function SheetRegistro({
                 type="button"
                 onClick={salvar}
                 disabled={!!erroValidacao || salvando}
-                className="w-full rounded-xl bg-perigo py-3.5 text-lg font-bold text-white disabled:opacity-40"
+                className="w-full rounded-lg bg-perigo py-3.5 text-lg font-bold text-white disabled:opacity-40"
               >
                 {salvando ? "Salvando…" : "Salvar e encerrar"}
               </button>

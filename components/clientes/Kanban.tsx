@@ -32,6 +32,7 @@ import {
   type Estagio,
   type Funil,
 } from "@/lib/types";
+import { Icone } from "@/lib/icones";
 
 export function Kanban({
   clientes,
@@ -100,7 +101,7 @@ export function Kanban({
               if (aceita && arrastando) aoMover(arrastando, estagio);
               setArrastando(null);
             }}
-            className={`flex h-full w-64 shrink-0 snap-start flex-col rounded-xl border p-2 ${
+            className={`flex h-full w-64 shrink-0 snap-start flex-col rounded-lg border p-2 ${
               realcada ? "border-marca bg-marca/5" : "border-borda bg-carta/60"
             }`}
           >
@@ -124,13 +125,13 @@ export function Kanban({
                       setArrastando(null);
                       setSobre(null);
                     }}
-                    className={`rounded-lg border border-borda bg-carta p-2 ${
+                    className={`rounded-md border border-borda bg-carta p-2 ${
                       arrastando === c.id ? "opacity-50" : ""
                     }`}
                   >
                     <Link href={`/clientes/ficha?id=${c.id}`} className="block">
                       <span className="flex items-start gap-1.5">
-                        <span aria-hidden>{ICONE_TIPO_CLIENTE[c.tipo]}</span>
+                        <Icone nome={ICONE_TIPO_CLIENTE[c.tipo]} tamanho={16} className="mt-0.5 text-tinta-fraca" />
                         <span className="min-w-0 flex-1 text-sm font-semibold leading-tight">
                           {c.nome}
                         </span>
@@ -160,7 +161,7 @@ export function Kanban({
                         className="flex-1 rounded-md border border-borda text-sm font-bold text-tinta-fraca disabled:opacity-30"
                         style={{ minHeight: 36 }}
                       >
-                        ←
+                        <Icone nome="seta-esquerda" tamanho={16} />
                       </button>
                       <button
                         type="button"
@@ -170,7 +171,7 @@ export function Kanban({
                         className="flex-1 rounded-md border border-borda text-sm font-bold text-marca disabled:opacity-30"
                         style={{ minHeight: 36 }}
                       >
-                        →
+                        <Icone nome="seta-direita" tamanho={16} />
                       </button>
                     </div>
                   </li>

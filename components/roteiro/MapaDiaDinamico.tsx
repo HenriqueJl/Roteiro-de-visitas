@@ -11,7 +11,7 @@ export type { PontoParada } from "./MapaDia";
 export const MapaDiaDinamico = dynamic(() => import("./MapaDia"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-64 w-full items-center justify-center rounded-xl border border-borda bg-carta text-sm text-tinta-fraca">
+    <div className="flex h-64 w-full items-center justify-center rounded-lg border border-borda bg-carta text-sm text-tinta-fraca">
       Carregando mapa…
     </div>
   ),

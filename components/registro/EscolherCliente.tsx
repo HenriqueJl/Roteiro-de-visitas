@@ -5,6 +5,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import { contemBusca } from "@/lib/texto";
 import { ICONE_TIPO_CLIENTE, type Cliente } from "@/lib/types";
+import { Icone } from "@/lib/icones";
 
 /**
  * Seletor de cliente para a visita fora do roteiro. Busca por nome, cidade ou
@@ -60,7 +61,7 @@ export function EscolherCliente({
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
             placeholder="Buscar por nome, cidade ou bairro"
-            className="mt-2 w-full rounded-lg border border-borda bg-fundo p-3"
+            className="mt-2 w-full rounded-md border border-borda bg-fundo p-3"
           />
         </header>
         <ul className="overflow-y-auto px-2 py-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
@@ -69,10 +70,10 @@ export function EscolherCliente({
               <button
                 type="button"
                 onClick={() => aoEscolher(c)}
-                className="flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left active:bg-fundo"
+                className="flex w-full items-center gap-3 rounded-md px-2 py-2.5 text-left active:bg-fundo"
               >
                 <span aria-hidden className="text-xl">
-                  {ICONE_TIPO_CLIENTE[c.tipo]}
+                  <Icone nome={ICONE_TIPO_CLIENTE[c.tipo]} className="text-tinta-fraca" />
                 </span>
                 <span className="min-w-0">
                   <span className="block truncate font-semibold">{c.nome}</span>

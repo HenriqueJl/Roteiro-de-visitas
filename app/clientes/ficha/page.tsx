@@ -22,9 +22,10 @@ import {
   estagiosDoFunil,
   type Estagio,
 } from "@/lib/types";
+import { Icone } from "@/lib/icones";
 
 const acao =
-  "flex min-h-12 flex-1 items-center justify-center gap-1 rounded-lg border border-borda bg-carta text-sm font-semibold";
+  "flex min-h-12 flex-1 items-center justify-center gap-1 rounded-md border border-borda bg-carta text-sm font-semibold";
 
 function Ficha() {
   const params = useSearchParams();
@@ -116,10 +117,10 @@ function Ficha() {
             onClick={() => roteador.back()}
             className="w-8 shrink-0 text-left text-xl font-bold"
           >
-            ←
+            <Icone nome="seta-esquerda" tamanho={22} />
           </button>
           <span aria-hidden className="text-2xl">
-            {ICONE_TIPO_CLIENTE[cliente.tipo]}
+            <Icone nome={ICONE_TIPO_CLIENTE[cliente.tipo]} tamanho={22} className="text-tinta-fraca" />
           </span>
           <div className="min-w-0 flex-1">
             <h1 className="text-lg font-bold leading-tight">{cliente.nome}</h1>
@@ -140,20 +141,20 @@ function Ficha() {
       <div className="space-y-3 px-4 py-3">
         {/* --- Próximo passo em destaque --- */}
         {cliente.status !== "ativo" ? (
-          <section className="rounded-xl border border-borda border-l-4 border-l-perigo bg-carta p-4">
+          <section className="rounded-lg border border-borda border-l-4 border-l-perigo bg-carta p-4">
             <p className="font-bold text-perigo">
               {LABEL_STATUS_CLIENTE[cliente.status]}
             </p>
             <button
               type="button"
               onClick={reabrir}
-              className="mt-2 min-h-11 rounded-lg border border-borda px-4 font-semibold"
+              className="mt-2 min-h-11 rounded-md border border-borda px-4 font-semibold"
             >
               Reabrir cliente
             </button>
           </section>
         ) : (tarefas ?? []).length > 0 ? (
-          <section className="rounded-xl border border-borda border-l-4 border-l-marca bg-carta p-4">
+          <section className="rounded-lg border border-borda border-l-4 border-l-marca bg-carta p-4">
             <h2 className="text-xs font-bold uppercase tracking-wide text-tinta-fraca">
               Próximo passo
             </h2>
@@ -177,7 +178,7 @@ function Ficha() {
             </ul>
           </section>
         ) : (
-          <section className="rounded-xl border border-borda border-l-4 border-l-alerta bg-carta p-4">
+          <section className="rounded-lg border border-borda border-l-4 border-l-alerta bg-carta p-4">
             <p className="font-semibold text-alerta">Sem próximo passo definido.</p>
             <p className="mt-0.5 text-sm text-tinta-fraca">
               Registre uma interação para reabrir a cobrança.
@@ -189,7 +190,8 @@ function Ficha() {
         <div className="flex gap-2">
           {cliente.telefone && (
             <a href={linkLigar(cliente.telefone)} className={acao}>
-              📞 Ligar
+              <Icone nome="telefone" tamanho={17} />
+              Ligar
             </a>
           )}
           {cliente.telefone && (
@@ -199,7 +201,8 @@ function Ficha() {
               rel="noopener noreferrer"
               className={acao}
             >
-              💬 WhatsApp
+              <Icone nome="conversa" tamanho={17} />
+              WhatsApp
             </a>
           )}
           {temGps && (
@@ -209,7 +212,8 @@ function Ficha() {
               rel="noopener noreferrer"
               className={acao}
             >
-              🚗 Waze
+              <Icone nome="navegar" tamanho={17} />
+                Waze
             </a>
           )}
           {temGps && (
@@ -219,7 +223,8 @@ function Ficha() {
               rel="noopener noreferrer"
               className={acao}
             >
-              🗺️ Maps
+              <Icone nome="mapa" tamanho={17} />
+                Maps
             </a>
           )}
         </div>
@@ -228,20 +233,20 @@ function Ficha() {
           <button
             type="button"
             onClick={() => setRegistroAberto(true)}
-            className="min-h-12 flex-1 rounded-lg bg-marca font-bold text-white active:bg-marca-forte"
+            className="min-h-12 flex-1 rounded-md bg-marca font-bold text-white active:bg-marca-forte"
           >
             Registrar interação
           </button>
           <Link
             href={`/vendas?cliente=${cliente.id}`}
-            className="flex min-h-12 flex-1 items-center justify-center rounded-lg border border-borda bg-carta font-bold"
+            className="flex min-h-12 flex-1 items-center justify-center rounded-md border border-borda bg-carta font-bold"
           >
             Lançar pedido
           </Link>
         </div>
 
         {/* --- Estágio --- */}
-        <section className="rounded-xl border border-borda bg-carta p-4">
+        <section className="rounded-lg border border-borda bg-carta p-4">
           <h2 className="text-xs font-bold uppercase tracking-wide text-tinta-fraca">
             Estágio — funil {LABEL_FUNIL[cliente.funil].toLowerCase()}
           </h2>
@@ -251,7 +256,7 @@ function Ficha() {
                 key={s}
                 type="button"
                 onClick={() => mudarEstagio(s)}
-                className={`rounded-full px-3 py-2 text-sm font-semibold ${
+                className={`rounded-md px-3 py-2 text-sm font-semibold ${
                   cliente.estagio === s
                     ? "bg-marca text-white"
                     : "border border-borda bg-fundo"
@@ -267,7 +272,7 @@ function Ficha() {
         <Playbook tipo={cliente.tipo} />
 
         {/* --- Dados --- */}
-        <section className="rounded-xl border border-borda bg-carta p-4 text-sm">
+        <section className="rounded-lg border border-borda bg-carta p-4 text-sm">
           <dl className="space-y-1">
             <div className="flex gap-2">
               <dt className="w-28 shrink-0 text-tinta-fraca">Endereço</dt>
@@ -322,7 +327,7 @@ function Ficha() {
 
         {/* --- Pedidos --- */}
         {(pedidos ?? []).length > 0 && (
-          <section className="rounded-xl border border-borda bg-carta p-4">
+          <section className="rounded-lg border border-borda bg-carta p-4">
             <div className="flex items-baseline justify-between">
               <h2 className="text-xs font-bold uppercase tracking-wide text-tinta-fraca">
                 Pedidos
@@ -343,7 +348,7 @@ function Ficha() {
 
         {/* --- Notas --- */}
         {(notas ?? []).length > 0 && (
-          <section className="rounded-xl border border-borda bg-carta p-4">
+          <section className="rounded-lg border border-borda bg-carta p-4">
             <h2 className="text-xs font-bold uppercase tracking-wide text-tinta-fraca">
               Notas
             </h2>

@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Icone } from "@/lib/icones";
 
 const ABAS = [
-  { href: "/", icone: "🏠", rotulo: "Hoje" },
-  { href: "/roteiro", icone: "🗺️", rotulo: "Roteiro" },
-  { href: "/clientes", icone: "👥", rotulo: "Clientes" },
-  { href: "/vendas", icone: "💰", rotulo: "Vendas" },
-  { href: "/notas", icone: "📝", rotulo: "Notas" },
-  { href: "/kpi", icone: "📊", rotulo: "KPI" },
+  { href: "/", icone: "hoje", rotulo: "Hoje" },
+  { href: "/roteiro", icone: "roteiro", rotulo: "Roteiro" },
+  { href: "/clientes", icone: "clientes", rotulo: "Clientes" },
+  { href: "/vendas", icone: "vendas", rotulo: "Vendas" },
+  { href: "/notas", icone: "notas", rotulo: "Notas" },
+  { href: "/kpi", icone: "kpi", rotulo: "KPI" },
 ] as const;
 
 export function NavInferior() {
@@ -27,9 +28,7 @@ export function NavInferior() {
                 ativa ? "text-marca" : "text-tinta-fraca"
               }`}
             >
-              <span aria-hidden className="text-lg leading-none">
-                {a.icone}
-              </span>
+              <Icone nome={a.icone} tamanho={21} />
               {a.rotulo}
             </Link>
           );

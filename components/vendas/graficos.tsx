@@ -37,9 +37,9 @@ import type { Barra, PontoSemana } from "@/lib/analise";
  * se um mudar lá, muda aqui. As barras CSS abaixo usam as utilities `bg-serie`
  * e `bg-grade`, essas sim ligadas ao token.
  */
-const SERIE = "#2f6fd0";
-const GRADE = "#e6e8ec";
-const EIXO = "#8a93a5";
+const SERIE = "#26689e";
+const GRADE = "#e7e7e5";
+const EIXO = "#8b8e94";
 
 // ---------------------------------------------------------------------------
 // Cartão
@@ -65,7 +65,7 @@ export function Cartao({
 }) {
   return (
     <section
-      className={`rounded-xl border bg-carta p-4 ${largo ? "md:col-span-2" : ""} ${
+      className={`rounded-lg border bg-carta p-4 ${largo ? "md:col-span-2" : ""} ${
         destaque ? "border-marca ring-1 ring-marca/20" : "border-borda"
       }`}
     >
@@ -152,7 +152,7 @@ function DicaSemana({
   if (!active || !payload?.length) return null;
   const p = payload[0].payload;
   return (
-    <div className="rounded-lg border border-borda bg-carta px-3 py-2 text-xs shadow-lg">
+    <div className="rounded-md border border-borda bg-carta px-3 py-2 text-xs shadow-lg">
       <p className="font-semibold">Semana de {fmtCurto(p.semana)}</p>
       <p className="text-marca font-bold">{fmtMoeda(p.faturamento)}</p>
       <p className="text-tinta-fraca">

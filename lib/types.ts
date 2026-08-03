@@ -77,22 +77,26 @@ export const LABEL_TIPO_CLIENTE_CURTO: Record<TipoCliente, string> = {
 
 /** Cor por tipo — marcadores do mapa e etiquetas. Espelha as vars de globals.css. */
 export const COR_TIPO_CLIENTE: Record<TipoCliente, string> = {
-  hospital: "#a30d18",
-  loja_medico_hospitalar: "#6b21a8",
-  petshop: "#0f6b33",
-  clinica_veterinaria: "#0e6f7a",
-  casa_racao: "#8a5a00",
-  distribuidor: "#3730a3",
+  hospital: "#8c2f2f",
+  loja_medico_hospitalar: "#5b3a7a",
+  petshop: "#2c6146",
+  clinica_veterinaria: "#1f5b63",
+  casa_racao: "#7a5320",
+  distribuidor: "#35406b",
 };
 
-/** Ícone (emoji) por tipo — legível a um metro de distância, custo zero. */
+/**
+ * Nome do ícone por tipo — resolvido por `<Icone>` em lib/icones.tsx.
+ * Guardamos o nome, não o componente, para este arquivo seguir sem JSX: ele é
+ * importado por módulos que rodam fora do React (db, gerador, exportação).
+ */
 export const ICONE_TIPO_CLIENTE: Record<TipoCliente, string> = {
-  hospital: "🏥",
-  loja_medico_hospitalar: "🩺",
-  petshop: "🐾",
-  clinica_veterinaria: "🐕",
-  casa_racao: "🌾",
-  distribuidor: "📦",
+  hospital: "hospital",
+  loja_medico_hospitalar: "loja-medica",
+  petshop: "petshop",
+  clinica_veterinaria: "veterinaria",
+  casa_racao: "racao",
+  distribuidor: "distribuidor",
 };
 
 // ---------------------------------------------------------------------------
@@ -310,12 +314,12 @@ export const LABEL_RESULTADO: Record<ResultadoInteracao, string> = {
 };
 
 export const ICONE_RESULTADO: Record<ResultadoInteracao, string> = {
-  pedido: "💰",
-  interesse: "👍",
-  retorno_agendado: "🔁",
-  sem_interesse: "👎",
-  nao_encontrou_decisor: "🕵️",
-  estabelecimento_fechado: "🚪",
+  pedido: "pedido",
+  interesse: "interesse",
+  retorno_agendado: "retorno",
+  sem_interesse: "sem-interesse",
+  nao_encontrou_decisor: "sem-decisor",
+  estabelecimento_fechado: "fechado",
 };
 
 /** Resultado que dispensa a etapa 2 (objeção) — não houve trava. */

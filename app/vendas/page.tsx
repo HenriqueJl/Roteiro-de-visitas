@@ -16,6 +16,7 @@ import {
   LABEL_STATUS_PEDIDO,
   type Cliente,
 } from "@/lib/types";
+import { Icone } from "@/lib/icones";
 
 function TelaVendas() {
   const params = useSearchParams();
@@ -56,7 +57,7 @@ function TelaVendas() {
         <button
           type="button"
           onClick={() => setEscolherAberto(true)}
-          className="w-full rounded-xl bg-marca py-3.5 text-lg font-bold text-white active:bg-marca-forte"
+          className="w-full rounded-lg bg-marca py-3.5 text-lg font-bold text-white active:bg-marca-forte"
         >
           + Lançar pedido
         </button>
@@ -74,7 +75,7 @@ function TelaVendas() {
         {pedidos === undefined ? (
           <p className="py-8 text-center text-tinta-fraca">Carregando…</p>
         ) : pedidos.length === 0 ? (
-          <p className="rounded-xl border border-borda bg-carta p-6 text-center text-sm text-tinta-fraca">
+          <p className="rounded-lg border border-borda bg-carta p-6 text-center text-sm text-tinta-fraca">
             Nenhum pedido lançado ainda.
           </p>
         ) : (
@@ -82,7 +83,7 @@ function TelaVendas() {
             {pedidos.map((p) => {
               const c = porId.get(p.clienteId);
               return (
-                <li key={p.id} className="rounded-xl border border-borda bg-carta p-3">
+                <li key={p.id} className="rounded-lg border border-borda bg-carta p-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       {c ? (
@@ -90,7 +91,8 @@ function TelaVendas() {
                           href={`/clientes/ficha?id=${c.id}`}
                           className="block truncate font-bold"
                         >
-                          {ICONE_TIPO_CLIENTE[c.tipo]} {c.nome}
+                          <Icone nome={ICONE_TIPO_CLIENTE[c.tipo]} className="inline-block -mt-0.5 mr-1 text-tinta-fraca" />
+                          {c.nome}
                         </Link>
                       ) : (
                         <p className="truncate font-bold text-tinta-fraca">Cliente removido</p>

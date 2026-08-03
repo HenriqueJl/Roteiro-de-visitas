@@ -11,6 +11,7 @@ import { NotaRapida } from "@/components/hoje/NotaRapida";
 import { EscolherCliente } from "@/components/registro/EscolherCliente";
 import { SheetRegistro, type AlvoRegistro } from "@/components/registro/SheetRegistro";
 import type { Cliente, Tarefa } from "@/lib/types";
+import { Icone } from "@/lib/icones";
 
 /**
  * Tela Hoje — a mais importante do app (seção 6.1).
@@ -164,7 +165,7 @@ function TelaHoje() {
 
             {/* --- Paradas do dia --- */}
             {roteiro === null ? (
-              <div className="rounded-xl border border-borda bg-carta p-6 text-center">
+              <div className="rounded-lg border border-borda bg-carta p-6 text-center">
                 <p className="font-semibold">Sem roteiro para hoje.</p>
                 {proximoDia && (
                   <p className="mt-1 text-sm text-tinta-fraca">
@@ -174,7 +175,7 @@ function TelaHoje() {
                 )}
                 <Link
                   href="/roteiro"
-                  className="mt-3 inline-flex min-h-11 items-center justify-center rounded-lg bg-marca px-5 font-bold text-white"
+                  className="mt-3 inline-flex min-h-11 items-center justify-center rounded-md bg-marca px-5 font-bold text-white"
                 >
                   Ver roteiro
                 </Link>
@@ -182,8 +183,9 @@ function TelaHoje() {
             ) : (
               <>
                 {roteiro.observacao && (
-                  <p className="rounded-lg bg-carta px-3 py-2 text-sm text-tinta-fraca">
-                    ℹ️ {roteiro.observacao}
+                  <p className="rounded-md bg-carta px-3 py-2 text-sm text-tinta-fraca">
+                    <Icone nome="info" tamanho={15} className="mr-1 inline-block -mt-0.5" />
+                    {roteiro.observacao}
                   </p>
                 )}
                 {/* Coluna única no celular; duas colunas no computador. A ordem
@@ -206,15 +208,16 @@ function TelaHoje() {
                   })}
                 </div>
                 {roteiro.tardeLivre && (
-                  <p className="rounded-lg bg-carta px-3 py-2 text-sm text-tinta-fraca">
-                    📞 Tarde reservada para follow-up telefônico e consolidação.
+                  <p className="rounded-md bg-carta px-3 py-2 text-sm text-tinta-fraca">
+                    <Icone nome="telefone" tamanho={15} className="mr-1 inline-block -mt-0.5" />
+                    Tarde reservada para follow-up telefônico e consolidação.
                   </p>
                 )}
               </>
             )}
 
             {/* --- Rodapé: mini-resumo do dia --- */}
-            <section className="flex justify-between rounded-xl border border-borda bg-carta px-4 py-3 text-sm">
+            <section className="flex justify-between rounded-lg border border-borda bg-carta px-4 py-3 text-sm">
               <span>
                 <strong>{resumo.visitas}</strong> visita{resumo.visitas === 1 ? "" : "s"}
               </span>
@@ -237,9 +240,10 @@ function TelaHoje() {
                 setFabAberto(false);
                 setNotaAberta(true);
               }}
-              className="rounded-full bg-carta px-4 py-2.5 text-sm font-bold shadow-lg ring-1 ring-borda"
+              className="rounded-md bg-carta px-4 py-2.5 text-sm font-bold shadow-lg ring-1 ring-borda"
             >
-              📝 Nota rápida
+              <Icone nome="notas" tamanho={17} className="mr-1.5 inline-block -mt-0.5" />
+              Nota rápida
             </button>
             <button
               type="button"
@@ -247,9 +251,10 @@ function TelaHoje() {
                 setFabAberto(false);
                 setEscolherAberto(true);
               }}
-              className="rounded-full bg-carta px-4 py-2.5 text-sm font-bold shadow-lg ring-1 ring-borda"
+              className="rounded-md bg-carta px-4 py-2.5 text-sm font-bold shadow-lg ring-1 ring-borda"
             >
-              ➕ Visita fora do roteiro
+              <Icone nome="mais" tamanho={17} className="mr-1.5 inline-block -mt-0.5" />
+              Visita fora do roteiro
             </button>
           </>
         )}
@@ -260,7 +265,7 @@ function TelaHoje() {
           aria-expanded={fabAberto}
           className="flex h-14 w-14 items-center justify-center rounded-full bg-marca text-2xl font-bold text-white shadow-lg active:bg-marca-forte"
         >
-          {fabAberto ? "×" : "+"}
+          <Icone nome={fabAberto ? "fechar" : "mais"} tamanho={24} />
         </button>
       </div>
 
@@ -325,7 +330,7 @@ function BlocoAlerta({
   base: string;
 }) {
   return (
-    <section className={`rounded-xl border border-borda bg-carta border-l-4 ${cor} px-4 py-3`}>
+    <section className={`rounded-lg border border-borda bg-carta border-l-4 ${cor} px-4 py-3`}>
       <h2 className="text-sm font-bold">{titulo}</h2>
       <ul className="mt-1 space-y-1">
         {tarefas.map((t) => (

@@ -14,17 +14,16 @@
 
 import { PLAYBOOKS, produtosDoPlaybook } from "@/lib/playbooks";
 import { LABEL_PRODUTO, LABEL_TIPO_CLIENTE, type TipoCliente } from "@/lib/types";
+import { Icone } from "@/lib/icones";
 
 export function Playbook({ tipo }: { tipo: TipoCliente }) {
   const pb = PLAYBOOKS[tipo];
   const produtos = produtosDoPlaybook(tipo);
 
   return (
-    <details className="rounded-xl border border-borda bg-carta">
+    <details className="rounded-lg border border-borda bg-carta">
       <summary className="flex min-h-11 cursor-pointer items-center gap-2 p-4 font-bold marker:content-none [&::-webkit-details-marker]:hidden">
-        <span aria-hidden className="text-tinta-fraca">
-          ▸
-        </span>
+        <Icone nome="seta-direita" tamanho={16} className="text-tinta-fraca transition-transform group-open:rotate-90" />
         Como abordar {LABEL_TIPO_CLIENTE[tipo].toLowerCase()}
       </summary>
 

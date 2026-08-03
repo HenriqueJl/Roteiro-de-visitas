@@ -22,6 +22,7 @@ import {
   type Cliente,
   type Roteiro,
 } from "@/lib/types";
+import { Icone } from "@/lib/icones";
 
 export default function TelaRoteiro() {
   const [semana, setSemana] = useState<number | null>(null);
@@ -143,7 +144,7 @@ export default function TelaRoteiro() {
                 key={d.id}
                 type="button"
                 onClick={() => setDiaId(d.id)}
-                className={`flex shrink-0 flex-col items-center rounded-lg px-3 py-1.5 ${
+                className={`flex shrink-0 flex-col items-center rounded-md px-3 py-1.5 ${
                   ativo ? "bg-marca text-white" : "bg-fundo"
                 } ${d.data === hoje() && !ativo ? "ring-2 ring-marca" : ""}`}
               >
@@ -168,8 +169,9 @@ export default function TelaRoteiro() {
               {dia.cidade} — {dia.titulo}
             </h2>
             {dia.observacao && (
-              <p className="mt-1 rounded-lg bg-carta px-3 py-2 text-sm text-tinta-fraca">
-                ℹ️ {dia.observacao}
+              <p className="mt-1 rounded-md bg-carta px-3 py-2 text-sm text-tinta-fraca">
+                <Icone nome="info" tamanho={15} className="mr-1 inline-block -mt-0.5" />
+                {dia.observacao}
               </p>
             )}
           </div>
@@ -177,7 +179,7 @@ export default function TelaRoteiro() {
           {pontos.length > 0 ? (
             <MapaDiaDinamico pontos={pontos} />
           ) : (
-            <p className="rounded-xl border border-borda bg-carta p-6 text-center text-sm text-tinta-fraca">
+            <p className="rounded-lg border border-borda bg-carta p-6 text-center text-sm text-tinta-fraca">
               Nenhuma parada com localização para desenhar no mapa.
             </p>
           )}
@@ -195,7 +197,7 @@ export default function TelaRoteiro() {
               return (
                 <li
                   key={p.clienteId}
-                  className={`rounded-xl border border-borda bg-carta p-3 ${
+                  className={`rounded-lg border border-borda bg-carta p-3 ${
                     p.concluida ? "opacity-60" : ""
                   }`}
                 >
@@ -204,20 +206,26 @@ export default function TelaRoteiro() {
                       className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
                       style={{ background: p.concluida ? "#8a93a5" : "#0b3fa8" }}
                     >
-                      {p.concluida ? "✓" : p.ordem}
+                      {p.concluida ? <Icone nome="check" tamanho={15} /> : p.ordem}
                     </span>
                     <div className="min-w-0 flex-1">
                       <Link
                         href={`/clientes/ficha?id=${c.id}`}
                         className="block truncate font-bold"
                       >
-                        {ICONE_TIPO_CLIENTE[c.tipo]} {c.nome}
+                        <Icone nome={ICONE_TIPO_CLIENTE[c.tipo]} className="inline-block -mt-0.5 mr-1 text-tinta-fraca" />
+                        {c.nome}
                       </Link>
                       <p className="text-sm text-tinta-fraca">
                         {p.horarioSugerido && `${p.horarioSugerido} · `}
                         {c.bairro || c.cidade}
                       </p>
-                      {p.objetivo && <p className="mt-1 text-sm">🎯 {p.objetivo}</p>}
+                      {p.objetivo && (
+                        <p className="mt-1 flex items-start gap-1.5 text-sm">
+                          <Icone nome="objetivo" tamanho={15} className="mt-0.5 text-tinta-fraca" />
+                          <span>{p.objetivo}</span>
+                        </p>
+                      )}
                     </div>
                     {temGps && !editando && (
                       <div className="flex shrink-0 flex-col gap-1">
@@ -248,25 +256,25 @@ export default function TelaRoteiro() {
                         aria-label={`Subir ${c.nome}`}
                         disabled={i === 0}
                         onClick={() => moverParada(dia.id, p.clienteId, -1)}
-                        className="min-h-11 rounded-lg border border-borda px-3 font-bold disabled:opacity-30"
+                        className="min-h-11 rounded-md border border-borda px-3 font-bold disabled:opacity-30"
                       >
-                        ↑
+                        <Icone nome="subiu" tamanho={17} />
                       </button>
                       <button
                         type="button"
                         aria-label={`Descer ${c.nome}`}
                         disabled={i === paradas.length - 1}
                         onClick={() => moverParada(dia.id, p.clienteId, 1)}
-                        className="min-h-11 rounded-lg border border-borda px-3 font-bold disabled:opacity-30"
+                        className="min-h-11 rounded-md border border-borda px-3 font-bold disabled:opacity-30"
                       >
-                        ↓
+                        <Icone nome="desceu" tamanho={17} />
                       </button>
                       <button
                         type="button"
                         onClick={() =>
                           setTransferindo(transferindo === p.clienteId ? null : p.clienteId)
                         }
-                        className="min-h-11 rounded-lg border border-borda px-3 text-sm font-semibold"
+                        className="min-h-11 rounded-md border border-borda px-3 text-sm font-semibold"
                       >
                         Mover de dia
                       </button>
@@ -276,7 +284,7 @@ export default function TelaRoteiro() {
                           await removerParada(dia.id, p.clienteId);
                           avisar(`${c.nome} saiu do dia.`);
                         }}
-                        className="min-h-11 rounded-lg border border-borda px-3 text-sm font-semibold text-perigo"
+                        className="min-h-11 rounded-md border border-borda px-3 text-sm font-semibold text-perigo"
                       >
                         Remover
                       </button>
@@ -296,7 +304,7 @@ export default function TelaRoteiro() {
                               setTransferindo(null);
                               avisar(`Movido para ${fmtCurto(r.data)} — ${r.cidade}.`);
                             }}
-                            className="rounded-lg border border-borda bg-fundo px-2.5 py-2 text-xs font-semibold"
+                            className="rounded-md border border-borda bg-fundo px-2.5 py-2 text-xs font-semibold"
                           >
                             S{r.semana} {LABEL_DIA_SEMANA_CURTO[r.diaSemana]} {fmtCurto(r.data)}
                             <span className="block text-[10px] font-normal text-tinta-fraca">
@@ -315,15 +323,16 @@ export default function TelaRoteiro() {
             <button
               type="button"
               onClick={() => setAddAberto(true)}
-              className="w-full rounded-xl border-2 border-dashed border-borda py-3 font-bold text-tinta-fraca"
+              className="w-full rounded-lg border-2 border-dashed border-borda py-3 font-bold text-tinta-fraca"
             >
               + Adicionar cliente a este dia
             </button>
           )}
 
           {dia.tardeLivre && (
-            <p className="rounded-lg bg-carta px-3 py-2 text-sm text-tinta-fraca">
-              📞 Tarde reservada para follow-up telefônico e consolidação.
+            <p className="rounded-md bg-carta px-3 py-2 text-sm text-tinta-fraca">
+              <Icone nome="telefone" tamanho={15} className="mr-1 inline-block -mt-0.5" />
+              Tarde reservada para follow-up telefônico e consolidação.
             </p>
           )}
 
@@ -345,7 +354,7 @@ export default function TelaRoteiro() {
                 setGerando(false);
               }
             }}
-            className="mt-2 w-full rounded-xl bg-marca py-3.5 text-lg font-bold text-white disabled:opacity-40"
+            className="mt-2 w-full rounded-lg bg-marca py-3.5 text-lg font-bold text-white disabled:opacity-40"
           >
             {gerando ? "Montando…" : "Gerar semana seguinte"}
           </button>
@@ -365,15 +374,15 @@ export default function TelaRoteiro() {
               Semana {relatorio.roteiros[0]?.semana ?? ""} montada
             </h2>
             <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-lg bg-fundo p-2">
+              <div className="rounded-md bg-fundo p-2">
                 <dt className="text-xs text-tinta-fraca">Compromissos</dt>
                 <dd className="text-xl font-bold">{relatorio.resumo.compromissos}</dd>
               </div>
-              <div className="rounded-lg bg-fundo p-2">
+              <div className="rounded-md bg-fundo p-2">
                 <dt className="text-xs text-tinta-fraca">Follow-up</dt>
                 <dd className="text-xl font-bold">{relatorio.resumo.followUp}</dd>
               </div>
-              <div className="rounded-lg bg-fundo p-2">
+              <div className="rounded-md bg-fundo p-2">
                 <dt className="text-xs text-tinta-fraca">Prospecção</dt>
                 <dd className="text-xl font-bold">{relatorio.resumo.novos}</dd>
               </div>
@@ -393,7 +402,7 @@ export default function TelaRoteiro() {
             </ul>
 
             {relatorio.sobra.length > 0 && (
-              <div className="mt-3 rounded-lg border border-borda border-l-4 border-l-alerta p-3">
+              <div className="mt-3 rounded-md border border-borda border-l-4 border-l-alerta p-3">
                 <p className="text-sm font-bold text-alerta">
                   {relatorio.sobra.length} cliente{relatorio.sobra.length === 1 ? "" : "s"} não
                   coube{relatorio.sobra.length === 1 ? "" : "ram"} na semana
@@ -412,7 +421,7 @@ export default function TelaRoteiro() {
             <button
               type="button"
               onClick={() => setRelatorio(null)}
-              className="mt-4 w-full rounded-xl bg-marca py-3 font-bold text-white"
+              className="mt-4 w-full rounded-lg bg-marca py-3 font-bold text-white"
             >
               Ver o roteiro
             </button>

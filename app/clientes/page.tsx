@@ -23,9 +23,10 @@ import {
   type Estagio,
   type Funil,
 } from "@/lib/types";
+import { Icone } from "@/lib/icones";
 
 const TODOS = "todos";
-const filtro = "min-w-0 flex-1 rounded-lg border border-borda bg-carta px-2 py-2 text-sm";
+const filtro = "min-w-0 flex-1 rounded-md border border-borda bg-carta px-2 py-2 text-sm";
 
 /** Estágios dos dois funis, sem repetição, para o seletor. */
 const ESTAGIOS_TODOS = [
@@ -92,7 +93,7 @@ export default function TelaClientes() {
               role="tab"
               aria-selected={visao === v}
               onClick={() => setVisao(v)}
-              className={`flex-1 rounded-lg py-2 text-sm font-semibold ${
+              className={`flex-1 rounded-md py-2 text-sm font-semibold ${
                 visao === v
                   ? "bg-marca text-white"
                   : "border border-borda bg-carta text-tinta-fraca"
@@ -106,7 +107,7 @@ export default function TelaClientes() {
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar por nome, bairro ou endereço"
-          className="w-full rounded-lg border border-borda bg-carta p-3"
+          className="w-full rounded-md border border-borda bg-carta p-3"
         />
         <div className="flex gap-1.5">
           <select
@@ -209,10 +210,10 @@ export default function TelaClientes() {
             <li key={c.id}>
               <Link
                 href={`/clientes/ficha?id=${c.id}`}
-                className="flex min-h-14 items-center gap-3 rounded-lg px-2 py-2 active:bg-carta"
+                className="flex min-h-14 items-center gap-3 rounded-md px-2 py-2 active:bg-carta"
               >
                 <span aria-hidden className="text-xl">
-                  {ICONE_TIPO_CLIENTE[c.tipo]}
+                  <Icone nome={ICONE_TIPO_CLIENTE[c.tipo]} className="text-tinta-fraca" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-semibold">{c.nome}</span>

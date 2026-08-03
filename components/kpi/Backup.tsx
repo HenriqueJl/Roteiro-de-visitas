@@ -97,10 +97,10 @@ export function BlocoBackup() {
   }
 
   const botao =
-    "rounded-lg border border-borda bg-carta px-3 py-2.5 text-sm font-semibold active:bg-fundo";
+    "rounded-md border border-borda bg-carta px-3 py-2.5 text-sm font-semibold active:bg-fundo";
 
   return (
-    <section className="space-y-3 rounded-xl border border-borda bg-carta p-4">
+    <section className="space-y-3 rounded-lg border border-borda bg-carta p-4">
       <div>
         <h2 className="text-sm font-bold">Exportar CSV</h2>
         <p className="text-xs text-tinta-fraca">Abre no Excel, com acentuação.</p>
@@ -133,7 +133,7 @@ export function BlocoBackup() {
         <button
           type="button"
           onClick={exportarJson}
-          className="rounded-lg bg-marca px-3 py-2.5 text-sm font-bold text-white active:bg-marca-forte"
+          className="rounded-md bg-marca px-3 py-2.5 text-sm font-bold text-white active:bg-marca-forte"
         >
           Exportar JSON
         </button>
@@ -155,7 +155,7 @@ export function BlocoBackup() {
 
       {/* Confirmação da importação — o arquivo já foi lido e validado. */}
       {pendente && (
-        <div className="rounded-lg border border-alerta bg-alerta/5 p-3">
+        <div className="rounded-md border border-alerta bg-alerta/5 p-3">
           <p className="text-sm font-bold text-alerta">Substituir todos os dados?</p>
           <p className="mt-1 text-xs text-tinta-fraca">
             Backup de{" "}
@@ -172,7 +172,7 @@ export function BlocoBackup() {
               type="button"
               disabled={ocupado}
               onClick={confirmarImportacao}
-              className="rounded-lg bg-perigo px-3 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+              className="rounded-md bg-perigo px-3 py-2.5 text-sm font-bold text-white disabled:opacity-50"
             >
               {ocupado ? "Restaurando…" : "Substituir"}
             </button>
