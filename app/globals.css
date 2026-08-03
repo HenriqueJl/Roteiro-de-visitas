@@ -3,6 +3,27 @@
 @import "leaflet/dist/leaflet.css";
 
 /* ---------------------------------------------------------------
+   Leaflet e empilhamento.
+
+   O Leaflet declara z-index alto nos próprios elementos: 200 no pane de
+   tiles, 400 no pane de sombras, 600 nos marcadores e 1000 nos controles.
+   Como `.leaflet-container` fica com `z-index: auto`, ele NÃO cria contexto
+   de empilhamento — e esses valores competem no contexto da raiz, passando
+   por cima do bottom sheet (z-50), da barra de navegação (z-40) e do
+   cabeçalho grudado (z-30). Era isso que fazia o mapa aparecer recortado
+   sobre a tela de edição.
+
+   Dar um z-index ao container cria o contexto próprio e prende tudo dentro
+   do mapa. `isolation` é cinto de segurança para o caso de alguma versão
+   do Leaflet deixar de posicionar o container.
+   --------------------------------------------------------------- */
+.leaflet-container {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
+
+/* ---------------------------------------------------------------
    Campo — tema de rua.
    Alto contraste, sem modo escuro (escopo excluído, seção 12).
    Cores escolhidas para legibilidade sob luz do sol: fundo claro,

@@ -110,7 +110,7 @@ export default function MapaDia({ pontos }: { pontos: PontoParada[] }) {
         <Enquadrar pontos={pontos} />
       </MapContainer>
       {km > 0 && (
-        <p className="pointer-events-none absolute bottom-2 left-2 z-[400] rounded-md bg-carta/90 px-2 py-1 text-xs font-bold shadow">
+        <p className="pointer-events-none absolute bottom-2 left-2 z-10 rounded-md bg-carta/90 px-2 py-1 text-xs font-bold shadow">
           ~{km.toFixed(1)} km em linha reta
         </p>
       )}
