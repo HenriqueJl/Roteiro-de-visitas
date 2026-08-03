@@ -196,7 +196,11 @@ export default function TelaClientes() {
         </div>
       )}
 
-      <ul className={`px-2 py-2 ${visao === "kanban" ? "hidden" : ""}`}>
+      <ul
+        className={`px-2 py-2 md:grid md:grid-cols-2 md:gap-x-4 ${
+          visao === "kanban" ? "hidden" : ""
+        }`}
+      >
         {lista.map((c) => {
           const dias = c.ultimoContatoEm ? diasDesde(c.ultimoContatoEm) : null;
           const esquecido = c.status === "ativo" && dias !== null && dias > diasAlerta;

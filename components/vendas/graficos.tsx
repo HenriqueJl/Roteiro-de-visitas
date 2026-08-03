@@ -50,6 +50,7 @@ export function Cartao({
   legenda,
   vazio,
   destaque,
+  largo,
   children,
 }: {
   titulo: string;
@@ -58,11 +59,13 @@ export function Cartao({
   vazio?: boolean;
   /** Realce do cartão que vai ao gestor (Top objeções). */
   destaque?: boolean;
+  /** Ocupa as duas colunas no computador — para o gráfico que pede largura. */
+  largo?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <section
-      className={`rounded-xl border bg-carta p-4 ${
+      className={`rounded-xl border bg-carta p-4 ${largo ? "md:col-span-2" : ""} ${
         destaque ? "border-marca ring-1 ring-marca/20" : "border-borda"
       }`}
     >

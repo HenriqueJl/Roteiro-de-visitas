@@ -16,7 +16,7 @@ export function NavInferior() {
   const rota = usePathname();
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-borda bg-carta pb-[env(safe-area-inset-bottom)]">
-      <div className="mx-auto flex max-w-md">
+      <div className="mx-auto flex max-w-md md:max-w-5xl">
         {ABAS.map((a) => {
           const ativa = a.href === "/" ? rota === "/" : rota.startsWith(a.href);
           return (

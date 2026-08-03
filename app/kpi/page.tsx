@@ -50,7 +50,7 @@ export default function Kpi() {
           <p className="py-8 text-center text-tinta-fraca">Carregando…</p>
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
               <CartaoKpi
                 rotulo="Visitas realizadas"
                 valor={dados.atual.visitas}
@@ -99,7 +99,7 @@ export default function Kpi() {
               <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-tinta-fraca">
                 Agora
               </h2>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2 md:max-w-md">
                 <CartaoAgora
                   rotulo="Amostras em teste"
                   valor={dados.estoque.amostrasEmTeste}

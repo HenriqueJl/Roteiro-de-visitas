@@ -105,12 +105,17 @@ export function Analise({
         </div>
       </section>
 
+      {/* No computador os cartões vão para duas colunas; no celular seguem
+          empilhados. `items-start` impede que um cartão curto esticado pela
+          altura do vizinho fique com metade em branco. */}
+      <div className="space-y-3 md:grid md:grid-cols-2 md:items-start md:gap-3 md:space-y-0">
       {/* Top objeções — o gráfico que ele leva ao gestor (P6). Em primeiro
           lugar e com realce: é a razão de a taxonomia de objeção ser fechada. */}
       <Cartao
         titulo="O que trava a venda"
         legenda="Objeções mais registradas — leve ao gestor"
         destaque
+        largo
         vazio={dados.objecoes.length === 0}
       >
         <BarrasH dados={dados.objecoes} formatar={fmtInt} />
@@ -119,6 +124,7 @@ export function Analise({
       <Cartao
         titulo="Evolução semanal"
         legenda="Faturamento por semana"
+        largo
         vazio={dados.evolucao.length === 0}
       >
         <EvolucaoSemanal dados={dados.evolucao} />
@@ -128,14 +134,13 @@ export function Analise({
         <BarrasH dados={dados.produto} formatar={fmtMoeda} />
       </Cartao>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Cartao titulo="Receita por cidade" vazio={dados.cidade.length === 0}>
-          <BarrasH dados={dados.cidade} formatar={fmtMoeda} />
-        </Cartao>
-        <Cartao titulo="Receita por tipo de cliente" vazio={dados.tipo.length === 0}>
-          <BarrasH dados={dados.tipo} formatar={fmtMoeda} />
-        </Cartao>
-      </div>
+      <Cartao titulo="Receita por cidade" vazio={dados.cidade.length === 0}>
+        <BarrasH dados={dados.cidade} formatar={fmtMoeda} />
+      </Cartao>
+
+      <Cartao titulo="Receita por tipo de cliente" vazio={dados.tipo.length === 0}>
+        <BarrasH dados={dados.tipo} formatar={fmtMoeda} />
+      </Cartao>
 
       <Cartao
         titulo="Taxa de conversão"
@@ -173,6 +178,7 @@ export function Analise({
           limite={8}
         />
       </Cartao>
+      </div>
     </div>
   );
 }

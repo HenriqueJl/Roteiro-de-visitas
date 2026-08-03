@@ -213,7 +213,7 @@ export default function Notas() {
               : "Nenhuma nota com esse filtro.")}
           </p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-2 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
             {visiveis.map((n) => {
               const c = n.clienteId ? porId.get(n.clienteId) : undefined;
               return (

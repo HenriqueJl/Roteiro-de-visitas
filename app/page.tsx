@@ -186,20 +186,25 @@ function TelaHoje() {
                     ℹ️ {roteiro.observacao}
                   </p>
                 )}
-                {paradas.map((p) => {
-                  const cliente = porId.get(p.clienteId);
-                  if (!cliente) return null;
-                  return (
-                    <CardParada
-                      key={p.clienteId}
-                      parada={p}
-                      cliente={cliente}
-                      aoRegistrar={(parada, c) =>
-                        setRegistro({ cliente: c, parada, roteiroId: roteiro.id })
-                      }
-                    />
-                  );
-                })}
+                {/* Coluna única no celular; duas colunas no computador. A ordem
+                    da rota continua sendo a de leitura: esquerda→direita, linha
+                    a linha. */}
+                <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
+                  {paradas.map((p) => {
+                    const cliente = porId.get(p.clienteId);
+                    if (!cliente) return null;
+                    return (
+                      <CardParada
+                        key={p.clienteId}
+                        parada={p}
+                        cliente={cliente}
+                        aoRegistrar={(parada, c) =>
+                          setRegistro({ cliente: c, parada, roteiroId: roteiro.id })
+                        }
+                      />
+                    );
+                  })}
+                </div>
                 {roteiro.tardeLivre && (
                   <p className="rounded-lg bg-carta px-3 py-2 text-sm text-tinta-fraca">
                     📞 Tarde reservada para follow-up telefônico e consolidação.
