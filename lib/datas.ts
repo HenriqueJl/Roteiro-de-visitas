@@ -111,6 +111,11 @@ export function fmtInstante(i: Instante): string {
   return format(new Date(i), "dd/MM HH:mm", { locale: ptBR });
 }
 
+/** "03/08/2026 14:30" — para as exportações, onde o ano não pode faltar. */
+export function fmtInstanteCompleto(i: Instante): string {
+  return format(new Date(i), "dd/MM/yyyy HH:mm", { locale: ptBR });
+}
+
 /** "há 3 dias" */
 export function fmtRelativo(i: Instante): string {
   return formatDistanceToNowStrict(new Date(i), {

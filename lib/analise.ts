@@ -18,7 +18,20 @@ import {
   type Interacao,
   type Objecao,
   type Pedido,
+  type TipoInteracao,
 } from "./types";
+
+/**
+ * Interações que contam como visita realizada. Ligação e WhatsApp ficam de
+ * fora: o indicador que ele reporta é "visita", e inflá-lo com contato remoto
+ * tornaria a taxa de conversão incomparável de uma semana para a outra.
+ * Declarado aqui porque o /vendas e o /kpi precisam da mesma definição.
+ */
+export const TIPOS_PRESENCIAIS: readonly TipoInteracao[] = [
+  "visita",
+  "demonstracao",
+  "entrega",
+];
 
 export interface Periodo {
   de: DataCivil;
@@ -193,7 +206,7 @@ export function conversaoPorTipo(
 ): Conversao[] {
   const acc = new Map<string, { visitas: number; pedidos: number }>();
   for (const i of interacoes) {
-    if (!["visita", "demonstracao", "entrega"].includes(i.tipo)) continue;
+    if (!TIPOS_PRESENCIAIS.includes(i.tipo)) continue;
     const tipo = clientes.get(i.clienteId)?.tipo;
     if (!tipo) continue;
     const atual = acc.get(tipo) ?? { visitas: 0, pedidos: 0 };
