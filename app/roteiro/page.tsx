@@ -1,0 +1,446 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useLiveQuery } from "dexie-react-hooks";
+import {
+  adicionarParada,
+  db,
+  gerarProximaSemana,
+  moverParada,
+  removerParada,
+  transferirParada,
+} from "@/lib/db";
+import { LABEL_MOTIVO, type ResultadoGeracao } from "@/lib/gerador";
+import { fmtCurto, fmtDiaExtenso, hoje } from "@/lib/datas";
+import { linkGoogleMaps, linkWaze } from "@/lib/links";
+import { MapaDiaDinamico, type PontoParada } from "@/components/roteiro/MapaDiaDinamico";
+import { EscolherCliente } from "@/components/registro/EscolherCliente";
+import {
+  ICONE_TIPO_CLIENTE,
+  LABEL_DIA_SEMANA_CURTO,
+  type Cliente,
+  type Roteiro,
+} from "@/lib/types";
+
+export default function TelaRoteiro() {
+  const [semana, setSemana] = useState<number | null>(null);
+  const [diaId, setDiaId] = useState<string | null>(null);
+  const [editando, setEditando] = useState(false);
+  const [addAberto, setAddAberto] = useState(false);
+  const [transferindo, setTransferindo] = useState<string | null>(null);
+  const [gerando, setGerando] = useState(false);
+  const [relatorio, setRelatorio] = useState<ResultadoGeracao | null>(null);
+  const [toast, setToast] = useState("");
+
+  function avisar(m: string) {
+    setToast(m);
+    setTimeout(() => setToast(""), 2500);
+  }
+
+  const roteiros = useLiveQuery(
+    async () => (await db.roteiros.toArray()).sort((a, b) => a.data.localeCompare(b.data)),
+    [],
+  );
+  const clientes = useLiveQuery(() => db.clientes.toArray(), []);
+
+  const semanas = useMemo(
+    () => [...new Set((roteiros ?? []).map((r) => r.semana))].sort((a, b) => a - b),
+    [roteiros],
+  );
+
+  // Abre na semana e no dia de hoje; se hoje não é dia de rua, no próximo.
+  useEffect(() => {
+    if (!roteiros || roteiros.length === 0 || semana !== null) return;
+    const h = hoje();
+    const alvo = roteiros.find((r) => r.data === h) ?? roteiros.find((r) => r.data >= h) ?? roteiros[0];
+    setSemana(alvo.semana);
+    setDiaId(alvo.id);
+  }, [roteiros, semana]);
+
+  const dias = useMemo(
+    () => (roteiros ?? []).filter((r) => r.semana === semana),
+    [roteiros, semana],
+  );
+  const dia = useMemo(() => dias.find((d) => d.id === diaId) ?? dias[0], [dias, diaId]);
+
+  const porId = useMemo(
+    () => new Map((clientes ?? []).map((c) => [c.id, c])),
+    [clientes],
+  );
+
+  const paradas = useMemo(
+    () => (dia ? [...dia.paradas].sort((a, b) => a.ordem - b.ordem) : []),
+    [dia],
+  );
+
+  const pontos: PontoParada[] = useMemo(
+    () =>
+      paradas.flatMap((parada) => {
+        const c = porId.get(parada.clienteId);
+        return c && c.lat != null && c.lng != null
+          ? [{ parada, cliente: c as Cliente & { lat: number; lng: number } }]
+          : [];
+      }),
+    [paradas, porId],
+  );
+
+  const semGps = paradas.length - pontos.length;
+
+  if (roteiros === undefined || clientes === undefined) {
+    return <p className="p-8 text-center text-tinta-fraca">Carregando…</p>;
+  }
+
+  if (roteiros.length === 0) {
+    return (
+      <main className="p-6 text-center">
+        <h1 className="text-xl font-bold">Roteiro</h1>
+        <p className="mt-2 text-sm text-tinta-fraca">Nenhuma semana planejada ainda.</p>
+      </main>
+    );
+  }
+
+  return (
+    <main>
+      <header className="sticky top-0 z-30 border-b border-borda bg-fundo/95 backdrop-blur">
+        <div className="flex items-baseline justify-between px-4 pt-3">
+          <h1 className="text-xl font-bold">Roteiro</h1>
+          <button
+            type="button"
+            onClick={() => setEditando((v) => !v)}
+            className="text-sm font-semibold text-marca underline"
+          >
+            {editando ? "Concluir edição" : "Editar"}
+          </button>
+        </div>
+
+        {/* Abas de semana */}
+        <div className="flex gap-1 overflow-x-auto px-4 pt-2">
+          {semanas.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => {
+                setSemana(s);
+                setDiaId(null);
+              }}
+              className={`shrink-0 rounded-t-lg px-4 py-2 text-sm font-bold ${
+                s === semana ? "bg-carta text-marca ring-1 ring-borda" : "text-tinta-fraca"
+              }`}
+            >
+              Semana {s}
+            </button>
+          ))}
+        </div>
+
+        {/* Dias da semana */}
+        <div className="flex gap-1.5 overflow-x-auto border-t border-borda bg-carta px-4 py-2">
+          {dias.map((d) => {
+            const ativo = d.id === dia?.id;
+            const feitas = d.paradas.filter((p) => p.concluida).length;
+            return (
+              <button
+                key={d.id}
+                type="button"
+                onClick={() => setDiaId(d.id)}
+                className={`flex shrink-0 flex-col items-center rounded-lg px-3 py-1.5 ${
+                  ativo ? "bg-marca text-white" : "bg-fundo"
+                } ${d.data === hoje() && !ativo ? "ring-2 ring-marca" : ""}`}
+              >
+                <span className="text-xs font-bold">{LABEL_DIA_SEMANA_CURTO[d.diaSemana]}</span>
+                <span className="text-[10px]">{fmtCurto(d.data)}</span>
+                <span className="text-[10px] font-semibold">
+                  {feitas}/{d.paradas.length}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </header>
+
+      {dia && (
+        <div className="space-y-3 px-4 py-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-tinta-fraca">
+              {fmtDiaExtenso(dia.data)}
+            </p>
+            <h2 className="text-lg font-bold">
+              {dia.cidade} — {dia.titulo}
+            </h2>
+            {dia.observacao && (
+              <p className="mt-1 rounded-lg bg-carta px-3 py-2 text-sm text-tinta-fraca">
+                ℹ️ {dia.observacao}
+              </p>
+            )}
+          </div>
+
+          {pontos.length > 0 ? (
+            <MapaDiaDinamico pontos={pontos} />
+          ) : (
+            <p className="rounded-xl border border-borda bg-carta p-6 text-center text-sm text-tinta-fraca">
+              Nenhuma parada com localização para desenhar no mapa.
+            </p>
+          )}
+          {semGps > 0 && (
+            <p className="text-xs text-alerta">
+              {semGps} parada{semGps > 1 ? "s" : ""} sem GPS ficou de fora do mapa.
+            </p>
+          )}
+
+          <ol className="space-y-2">
+            {paradas.map((p, i) => {
+              const c = porId.get(p.clienteId);
+              if (!c) return null;
+              const temGps = c.lat != null && c.lng != null;
+              return (
+                <li
+                  key={p.clienteId}
+                  className={`rounded-xl border border-borda bg-carta p-3 ${
+                    p.concluida ? "opacity-60" : ""
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    <span
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
+                      style={{ background: p.concluida ? "#8a93a5" : "#0b3fa8" }}
+                    >
+                      {p.concluida ? "✓" : p.ordem}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <Link
+                        href={`/clientes/ficha?id=${c.id}`}
+                        className="block truncate font-bold"
+                      >
+                        {ICONE_TIPO_CLIENTE[c.tipo]} {c.nome}
+                      </Link>
+                      <p className="text-sm text-tinta-fraca">
+                        {p.horarioSugerido && `${p.horarioSugerido} · `}
+                        {c.bairro || c.cidade}
+                      </p>
+                      {p.objetivo && <p className="mt-1 text-sm">🎯 {p.objetivo}</p>}
+                    </div>
+                    {temGps && !editando && (
+                      <div className="flex shrink-0 flex-col gap-1">
+                        <a
+                          href={linkWaze(c.lat!, c.lng!)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-md border border-borda px-2 py-1 text-xs font-semibold"
+                        >
+                          Waze
+                        </a>
+                        <a
+                          href={linkGoogleMaps(c.lat!, c.lng!)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-md border border-borda px-2 py-1 text-xs font-semibold"
+                        >
+                          Maps
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
+                  {editando && (
+                    <div className="mt-2 flex flex-wrap gap-1.5 border-t border-borda pt-2">
+                      <button
+                        type="button"
+                        aria-label={`Subir ${c.nome}`}
+                        disabled={i === 0}
+                        onClick={() => moverParada(dia.id, p.clienteId, -1)}
+                        className="min-h-11 rounded-lg border border-borda px-3 font-bold disabled:opacity-30"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Descer ${c.nome}`}
+                        disabled={i === paradas.length - 1}
+                        onClick={() => moverParada(dia.id, p.clienteId, 1)}
+                        className="min-h-11 rounded-lg border border-borda px-3 font-bold disabled:opacity-30"
+                      >
+                        ↓
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setTransferindo(transferindo === p.clienteId ? null : p.clienteId)
+                        }
+                        className="min-h-11 rounded-lg border border-borda px-3 text-sm font-semibold"
+                      >
+                        Mover de dia
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await removerParada(dia.id, p.clienteId);
+                          avisar(`${c.nome} saiu do dia.`);
+                        }}
+                        className="min-h-11 rounded-lg border border-borda px-3 text-sm font-semibold text-perigo"
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  )}
+
+                  {editando && transferindo === p.clienteId && (
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {(roteiros ?? [])
+                        .filter((r) => r.id !== dia.id)
+                        .map((r) => (
+                          <button
+                            key={r.id}
+                            type="button"
+                            onClick={async () => {
+                              await transferirParada(dia.id, r.id, p.clienteId);
+                              setTransferindo(null);
+                              avisar(`Movido para ${fmtCurto(r.data)} — ${r.cidade}.`);
+                            }}
+                            className="rounded-lg border border-borda bg-fundo px-2.5 py-2 text-xs font-semibold"
+                          >
+                            S{r.semana} {LABEL_DIA_SEMANA_CURTO[r.diaSemana]} {fmtCurto(r.data)}
+                            <span className="block text-[10px] font-normal text-tinta-fraca">
+                              {r.cidade} ({r.paradas.length})
+                            </span>
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+
+          {editando && (
+            <button
+              type="button"
+              onClick={() => setAddAberto(true)}
+              className="w-full rounded-xl border-2 border-dashed border-borda py-3 font-bold text-tinta-fraca"
+            >
+              + Adicionar cliente a este dia
+            </button>
+          )}
+
+          {dia.tardeLivre && (
+            <p className="rounded-lg bg-carta px-3 py-2 text-sm text-tinta-fraca">
+              📞 Tarde reservada para follow-up telefônico e consolidação.
+            </p>
+          )}
+
+          <button
+            type="button"
+            disabled={gerando}
+            onClick={async () => {
+              setGerando(true);
+              try {
+                const r = await gerarProximaSemana();
+                setRelatorio(r);
+                if (r.roteiros.length) {
+                  setSemana(r.roteiros[0].semana);
+                  setDiaId(r.roteiros[0].id);
+                }
+              } catch (e) {
+                avisar(e instanceof Error ? e.message : String(e));
+              } finally {
+                setGerando(false);
+              }
+            }}
+            className="mt-2 w-full rounded-xl bg-marca py-3.5 text-lg font-bold text-white disabled:opacity-40"
+          >
+            {gerando ? "Montando…" : "Gerar semana seguinte"}
+          </button>
+        </div>
+      )}
+
+      {relatorio && (
+        <div
+          className="fixed inset-0 z-[60] flex items-end bg-black/40"
+          onClick={() => setRelatorio(null)}
+        >
+          <div
+            className="max-h-[85dvh] w-full overflow-y-auto rounded-t-2xl bg-carta p-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-lg font-bold">
+              Semana {relatorio.roteiros[0]?.semana ?? ""} montada
+            </h2>
+            <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-lg bg-fundo p-2">
+                <dt className="text-xs text-tinta-fraca">Compromissos</dt>
+                <dd className="text-xl font-bold">{relatorio.resumo.compromissos}</dd>
+              </div>
+              <div className="rounded-lg bg-fundo p-2">
+                <dt className="text-xs text-tinta-fraca">Follow-up</dt>
+                <dd className="text-xl font-bold">{relatorio.resumo.followUp}</dd>
+              </div>
+              <div className="rounded-lg bg-fundo p-2">
+                <dt className="text-xs text-tinta-fraca">Prospecção</dt>
+                <dd className="text-xl font-bold">{relatorio.resumo.novos}</dd>
+              </div>
+            </dl>
+            <ul className="mt-3 space-y-1 text-sm">
+              {relatorio.roteiros.map((r) => (
+                <li key={r.id} className="flex justify-between gap-2">
+                  <span>
+                    {LABEL_DIA_SEMANA_CURTO[r.diaSemana]} {fmtCurto(r.data)} · {r.cidade}
+                  </span>
+                  <span className="font-semibold">
+                    {r.paradas.length} parada{r.paradas.length === 1 ? "" : "s"}
+                    {r.tardeLivre && " (meio dia)"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            {relatorio.sobra.length > 0 && (
+              <div className="mt-3 rounded-lg border border-borda border-l-4 border-l-alerta p-3">
+                <p className="text-sm font-bold text-alerta">
+                  {relatorio.sobra.length} cliente{relatorio.sobra.length === 1 ? "" : "s"} não
+                  coube{relatorio.sobra.length === 1 ? "" : "ram"} na semana
+                </p>
+                <ul className="mt-1 space-y-0.5 text-sm text-tinta-fraca">
+                  {relatorio.sobra.slice(0, 8).map((c) => (
+                    <li key={c.cliente.id}>
+                      {c.cliente.nome} — {LABEL_MOTIVO[c.motivo].toLowerCase()}
+                    </li>
+                  ))}
+                  {relatorio.sobra.length > 8 && <li>e mais {relatorio.sobra.length - 8}…</li>}
+                </ul>
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setRelatorio(null)}
+              className="mt-4 w-full rounded-xl bg-marca py-3 font-bold text-white"
+            >
+              Ver o roteiro
+            </button>
+          </div>
+        </div>
+      )}
+
+      {addAberto && dia && (
+        <EscolherCliente
+          cidadeDoDia={dia.cidade}
+          aoFechar={() => setAddAberto(false)}
+          aoEscolher={async (c) => {
+            setAddAberto(false);
+            if (dia.paradas.some((p) => p.clienteId === c.id)) {
+              avisar("Esse cliente já está no dia.");
+              return;
+            }
+            await adicionarParada(dia.id, c.id);
+            avisar(`${c.nome} entrou no dia.`);
+          }}
+        />
+      )}
+
+      {toast && (
+        <p className="fixed bottom-24 left-1/2 z-[500] -translate-x-1/2 whitespace-nowrap rounded-full bg-tinta px-4 py-2 text-sm font-semibold text-white shadow-lg">
+          {toast}
+        </p>
+      )}
+    </main>
+  );
+}

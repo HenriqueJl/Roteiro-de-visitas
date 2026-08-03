@@ -1,0 +1,199 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db, lerConfig } from "@/lib/db";
+import { diasDesde } from "@/lib/datas";
+import { contemBusca } from "@/lib/texto";
+import { FormCliente } from "@/components/clientes/FormCliente";
+import {
+  ESTAGIOS_INSTITUCIONAL,
+  ESTAGIOS_VAREJO,
+  ICONE_TIPO_CLIENTE,
+  LABEL_ESTAGIO,
+  LABEL_STATUS_CLIENTE,
+  LABEL_TIPO_CLIENTE,
+  STATUS_CLIENTE,
+  TIPOS_CLIENTE,
+  type Estagio,
+} from "@/lib/types";
+
+const TODOS = "todos";
+const filtro = "min-w-0 flex-1 rounded-lg border border-borda bg-carta px-2 py-2 text-sm";
+
+/** Estágios dos dois funis, sem repetição, para o seletor. */
+const ESTAGIOS_TODOS = [
+  ...new Set<Estagio>([...ESTAGIOS_INSTITUCIONAL, ...ESTAGIOS_VAREJO]),
+];
+
+export default function TelaClientes() {
+  const roteador = useRouter();
+  const [busca, setBusca] = useState("");
+  const [cidade, setCidade] = useState(TODOS);
+  const [tipo, setTipo] = useState(TODOS);
+  const [estagio, setEstagio] = useState(TODOS);
+  const [status, setStatus] = useState<string>("ativo");
+  const [novoAberto, setNovoAberto] = useState(false);
+
+  const clientes = useLiveQuery(() => db.clientes.toArray(), []);
+  const config = useLiveQuery(() => lerConfig(), []);
+  const diasAlerta = config?.diasSemContatoAlerta ?? 21;
+
+  const cidades = useMemo(
+    () => [...new Set((clientes ?? []).map((c) => c.cidade))].sort(),
+    [clientes],
+  );
+
+  const lista = useMemo(() => {
+    return (clientes ?? [])
+      .filter(
+        (c) =>
+          (status === TODOS || c.status === status) &&
+          (cidade === TODOS || c.cidade === cidade) &&
+          (tipo === TODOS || c.tipo === tipo) &&
+          (estagio === TODOS || c.estagio === estagio) &&
+          contemBusca(busca, c.nome, c.bairro, c.endereco),
+      )
+      .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  }, [clientes, busca, cidade, tipo, estagio, status]);
+
+  return (
+    <main>
+      <header className="sticky top-0 z-30 space-y-2 border-b border-borda bg-fundo/95 px-4 py-3 backdrop-blur">
+        <div className="flex items-baseline justify-between">
+          <h1 className="text-xl font-bold">Clientes</h1>
+          <span className="text-sm text-tinta-fraca">{lista.length}</span>
+        </div>
+        <input
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar por nome, bairro ou endereço"
+          className="w-full rounded-lg border border-borda bg-carta p-3"
+        />
+        <div className="flex gap-1.5">
+          <select
+            aria-label="Filtrar por cidade"
+            value={cidade}
+            onChange={(e) => setCidade(e.target.value)}
+            className={filtro}
+          >
+            <option value={TODOS}>Cidade</option>
+            {cidades.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="Filtrar por tipo"
+            value={tipo}
+            onChange={(e) => setTipo(e.target.value)}
+            className={filtro}
+          >
+            <option value={TODOS}>Tipo</option>
+            {TIPOS_CLIENTE.map((t) => (
+              <option key={t} value={t}>
+                {LABEL_TIPO_CLIENTE[t]}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="Filtrar por estágio"
+            value={estagio}
+            onChange={(e) => setEstagio(e.target.value)}
+            className={filtro}
+          >
+            <option value={TODOS}>Estágio</option>
+            {ESTAGIOS_TODOS.map((s) => (
+              <option key={s} value={s}>
+                {LABEL_ESTAGIO[s]}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="Filtrar por status"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className={filtro}
+          >
+            {STATUS_CLIENTE.map((s) => (
+              <option key={s} value={s}>
+                {LABEL_STATUS_CLIENTE[s]}
+              </option>
+            ))}
+            <option value={TODOS}>Todos</option>
+          </select>
+        </div>
+      </header>
+
+      <ul className="px-2 py-2">
+        {lista.map((c) => {
+          const dias = c.ultimoContatoEm ? diasDesde(c.ultimoContatoEm) : null;
+          const esquecido = c.status === "ativo" && dias !== null && dias > diasAlerta;
+          const nuncaVisitado = c.status === "ativo" && dias === null;
+          return (
+            <li key={c.id}>
+              <Link
+                href={`/clientes/ficha?id=${c.id}`}
+                className="flex min-h-14 items-center gap-3 rounded-lg px-2 py-2 active:bg-carta"
+              >
+                <span aria-hidden className="text-xl">
+                  {ICONE_TIPO_CLIENTE[c.tipo]}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-semibold">{c.nome}</span>
+                  <span className="block truncate text-sm text-tinta-fraca">
+                    {c.cidade}
+                    {c.bairro && ` · ${c.bairro}`}
+                  </span>
+                </span>
+                <span className="flex shrink-0 flex-col items-end gap-0.5">
+                  <span className="rounded-md bg-carta px-2 py-0.5 text-xs font-bold text-marca ring-1 ring-borda">
+                    {LABEL_ESTAGIO[c.estagio]}
+                  </span>
+                  {esquecido && (
+                    <span className="text-xs font-bold text-perigo">{dias} d sem contato</span>
+                  )}
+                  {nuncaVisitado && (
+                    <span className="text-xs font-semibold text-tinta-fraca">nunca visitado</span>
+                  )}
+                  {c.status !== "ativo" && (
+                    <span className="text-xs font-semibold text-tinta-fraca">
+                      {LABEL_STATUS_CLIENTE[c.status]}
+                    </span>
+                  )}
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+        {lista.length === 0 && clientes !== undefined && (
+          <li className="py-10 text-center text-sm text-tinta-fraca">
+            Nenhum cliente com esses filtros.
+          </li>
+        )}
+      </ul>
+
+      <button
+        type="button"
+        onClick={() => setNovoAberto(true)}
+        aria-label="Novo cliente"
+        className="fixed bottom-20 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-marca text-2xl font-bold text-white shadow-lg"
+      >
+        +
+      </button>
+
+      {novoAberto && (
+        <FormCliente
+          aoFechar={() => setNovoAberto(false)}
+          aoSalvo={(id) => {
+            setNovoAberto(false);
+            roteador.push(`/clientes/ficha?id=${id}`);
+          }}
+        />
+      )}
+    </main>
+  );
+}

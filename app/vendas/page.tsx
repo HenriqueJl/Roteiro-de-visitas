@@ -1,0 +1,189 @@
+"use client";
+
+import { Suspense, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useLiveQuery } from "dexie-react-hooks";
+import { db } from "@/lib/db";
+import { fmtData, fmtMoeda } from "@/lib/datas";
+import { FormPedido } from "@/components/vendas/FormPedido";
+import { EscolherCliente } from "@/components/registro/EscolherCliente";
+import {
+  ICONE_TIPO_CLIENTE,
+  LABEL_FORMA_PAGAMENTO,
+  LABEL_PRODUTO,
+  LABEL_STATUS_PEDIDO,
+  type Cliente,
+} from "@/lib/types";
+
+function TelaVendas() {
+  const params = useSearchParams();
+  const clientePreSelecionado = params.get("cliente");
+
+  const [alvo, setAlvo] = useState<Cliente | null>(null);
+  const [escolherAberto, setEscolherAberto] = useState(false);
+  const [toast, setToast] = useState("");
+
+  function avisar(m: string) {
+    setToast(m);
+    setTimeout(() => setToast(""), 3000);
+  }
+
+  const clientes = useLiveQuery(() => db.clientes.toArray(), []);
+  const pedidos = useLiveQuery(
+    async () => (await db.pedidos.toArray()).sort((a, b) => b.data.localeCompare(a.data)),
+    [],
+  );
+
+  const porId = useMemo(() => new Map((clientes ?? []).map((c) => [c.id, c])), [clientes]);
+
+  // Vindo da ficha do cliente (`/vendas?cliente=…`), abre o formulário direto.
+  useEffect(() => {
+    if (!clientePreSelecionado || !clientes) return;
+    const c = clientes.find((x) => x.id === clientePreSelecionado);
+    if (c) setAlvo(c);
+  }, [clientePreSelecionado, clientes]);
+
+  const totais = useMemo(() => {
+    const validos = (pedidos ?? []).filter((p) => p.status !== "cancelado");
+    const valor = validos.reduce((s, p) => s + p.valorTotal, 0);
+    return {
+      quantidade: validos.length,
+      valor,
+      ticket: validos.length ? valor / validos.length : 0,
+    };
+  }, [pedidos]);
+
+  return (
+    <main>
+      <header className="sticky top-0 z-30 border-b border-borda bg-fundo/95 px-4 py-3 backdrop-blur">
+        <h1 className="text-xl font-bold">Vendas</h1>
+      </header>
+
+      <div className="space-y-3 px-4 py-3">
+        <section className="flex justify-between rounded-xl border border-borda bg-carta px-4 py-3">
+          <div>
+            <p className="text-xs font-semibold uppercase text-tinta-fraca">Pedidos</p>
+            <p className="text-xl font-bold">{totais.quantidade}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs font-semibold uppercase text-tinta-fraca">Faturado</p>
+            <p className="text-xl font-bold text-marca">{fmtMoeda(totais.valor)}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs font-semibold uppercase text-tinta-fraca">Ticket</p>
+            <p className="text-xl font-bold">{fmtMoeda(totais.ticket)}</p>
+          </div>
+        </section>
+
+        <button
+          type="button"
+          onClick={() => setEscolherAberto(true)}
+          className="w-full rounded-xl bg-marca py-3.5 text-lg font-bold text-white active:bg-marca-forte"
+        >
+          + Lançar pedido
+        </button>
+
+        <p className="text-xs text-tinta-fraca">
+          As análises e os gráficos entram na etapa 11.
+        </p>
+
+        <h2 className="pt-1 text-xs font-bold uppercase tracking-wide text-tinta-fraca">
+          Últimos pedidos
+        </h2>
+
+        {pedidos === undefined ? (
+          <p className="py-8 text-center text-tinta-fraca">Carregando…</p>
+        ) : pedidos.length === 0 ? (
+          <p className="rounded-xl border border-borda bg-carta p-6 text-center text-sm text-tinta-fraca">
+            Nenhum pedido lançado ainda.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {pedidos.map((p) => {
+              const c = porId.get(p.clienteId);
+              return (
+                <li key={p.id} className="rounded-xl border border-borda bg-carta p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      {c ? (
+                        <Link
+                          href={`/clientes/ficha?id=${c.id}`}
+                          className="block truncate font-bold"
+                        >
+                          {ICONE_TIPO_CLIENTE[c.tipo]} {c.nome}
+                        </Link>
+                      ) : (
+                        <p className="truncate font-bold text-tinta-fraca">Cliente removido</p>
+                      )}
+                      <p className="text-sm text-tinta-fraca">
+                        {fmtData(p.data)} · {LABEL_FORMA_PAGAMENTO[p.formaPagamento]}
+                        {p.prazoDias > 0 && ` ${p.prazoDias}d`} ·{" "}
+                        {LABEL_STATUS_PEDIDO[p.status]}
+                      </p>
+                    </div>
+                    <span
+                      className={`shrink-0 font-bold ${
+                        p.status === "cancelado" ? "text-tinta-fraca line-through" : "text-marca"
+                      }`}
+                    >
+                      {fmtMoeda(p.valorTotal)}
+                    </span>
+                  </div>
+                  <ul className="mt-1 text-sm text-tinta-fraca">
+                    {p.itens.map((i) => (
+                      <li key={i.produto}>
+                        {i.quantidade}× {LABEL_PRODUTO[i.produto]} ·{" "}
+                        {fmtMoeda(i.precoUnitario)}
+                        {i.desconto > 0 && ` (−${i.desconto}%)`}
+                      </li>
+                    ))}
+                  </ul>
+                  {p.observacoes && (
+                    <p className="mt-1 text-sm italic text-tinta-fraca">“{p.observacoes}”</p>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      {escolherAberto && (
+        <EscolherCliente
+          aoFechar={() => setEscolherAberto(false)}
+          aoEscolher={(c) => {
+            setEscolherAberto(false);
+            setAlvo(c);
+          }}
+        />
+      )}
+
+      {alvo && (
+        <FormPedido
+          key={alvo.id}
+          cliente={alvo}
+          aoFechar={() => setAlvo(null)}
+          aoSalvo={(v) => {
+            setAlvo(null);
+            avisar(`Pedido de ${fmtMoeda(v)} lançado.`);
+          }}
+        />
+      )}
+
+      {toast && (
+        <p className="fixed bottom-24 left-1/2 z-[60] -translate-x-1/2 whitespace-nowrap rounded-full bg-tinta px-4 py-2 text-sm font-semibold text-white shadow-lg">
+          {toast}
+        </p>
+      )}
+    </main>
+  );
+}
+
+export default function Pagina() {
+  return (
+    <Suspense fallback={null}>
+      <TelaVendas />
+    </Suspense>
+  );
+}
