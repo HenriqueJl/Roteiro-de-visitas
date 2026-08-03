@@ -7,6 +7,7 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "@/lib/db";
 import { fmtData, fmtMoeda } from "@/lib/datas";
 import { FormPedido } from "@/components/vendas/FormPedido";
+import { Analise } from "@/components/vendas/Analise";
 import { EscolherCliente } from "@/components/registro/EscolherCliente";
 import {
   ICONE_TIPO_CLIENTE,
@@ -34,6 +35,7 @@ function TelaVendas() {
     async () => (await db.pedidos.toArray()).sort((a, b) => b.data.localeCompare(a.data)),
     [],
   );
+  const interacoes = useLiveQuery(() => db.interacoes.toArray(), []);
 
   const porId = useMemo(() => new Map((clientes ?? []).map((c) => [c.id, c])), [clientes]);
 
@@ -44,16 +46,6 @@ function TelaVendas() {
     if (c) setAlvo(c);
   }, [clientePreSelecionado, clientes]);
 
-  const totais = useMemo(() => {
-    const validos = (pedidos ?? []).filter((p) => p.status !== "cancelado");
-    const valor = validos.reduce((s, p) => s + p.valorTotal, 0);
-    return {
-      quantidade: validos.length,
-      valor,
-      ticket: validos.length ? valor / validos.length : 0,
-    };
-  }, [pedidos]);
-
   return (
     <main>
       <header className="sticky top-0 z-30 border-b border-borda bg-fundo/95 px-4 py-3 backdrop-blur">
@@ -61,21 +53,6 @@ function TelaVendas() {
       </header>
 
       <div className="space-y-3 px-4 py-3">
-        <section className="flex justify-between rounded-xl border border-borda bg-carta px-4 py-3">
-          <div>
-            <p className="text-xs font-semibold uppercase text-tinta-fraca">Pedidos</p>
-            <p className="text-xl font-bold">{totais.quantidade}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-xs font-semibold uppercase text-tinta-fraca">Faturado</p>
-            <p className="text-xl font-bold text-marca">{fmtMoeda(totais.valor)}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-xs font-semibold uppercase text-tinta-fraca">Ticket</p>
-            <p className="text-xl font-bold">{fmtMoeda(totais.ticket)}</p>
-          </div>
-        </section>
-
         <button
           type="button"
           onClick={() => setEscolherAberto(true)}
@@ -84,9 +61,11 @@ function TelaVendas() {
           + Lançar pedido
         </button>
 
-        <p className="text-xs text-tinta-fraca">
-          As análises e os gráficos entram na etapa 11.
-        </p>
+        {clientes === undefined || pedidos === undefined || interacoes === undefined ? (
+          <p className="py-8 text-center text-tinta-fraca">Carregando…</p>
+        ) : (
+          <Analise clientes={clientes} pedidos={pedidos} interacoes={interacoes} />
+        )}
 
         <h2 className="pt-1 text-xs font-bold uppercase tracking-wide text-tinta-fraca">
           Últimos pedidos
