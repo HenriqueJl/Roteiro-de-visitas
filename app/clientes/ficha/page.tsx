@@ -9,6 +9,7 @@ import { diasDesde, fmtData, fmtMoeda, fmtPrazo, fmtRelativo } from "@/lib/datas
 import { linkGoogleMaps, linkLigar, linkWaze, linkWhatsApp } from "@/lib/links";
 import { FormCliente } from "@/components/clientes/FormCliente";
 import { Timeline } from "@/components/clientes/Timeline";
+import { Playbook } from "@/components/clientes/Playbook";
 import { SheetRegistro } from "@/components/registro/SheetRegistro";
 import {
   ICONE_TIPO_CLIENTE,
@@ -261,6 +262,9 @@ function Ficha() {
             ))}
           </div>
         </section>
+
+        {/* --- Playbook (seção 9) --- */}
+        <Playbook tipo={cliente.tipo} />
 
         {/* --- Dados --- */}
         <section className="rounded-xl border border-borda bg-carta p-4 text-sm">

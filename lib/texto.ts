@@ -24,6 +24,22 @@ function compactar(t: string): string {
 }
 
 /**
+ * "Ostomia, CCIH , ostomia" -> ["ostomia", "ccih"].
+ *
+ * Minusculas e sem repeticao porque a etiqueta existe para filtrar: "CCIH" e
+ * "ccih" como duas etiquetas diferentes partiriam a lista em duas e nenhuma
+ * delas mostraria tudo.
+ */
+export function separarEtiquetas(entrada: string): string[] {
+  const vistas = new Set<string>();
+  for (const parte of entrada.split(/[,;]/)) {
+    const t = parte.trim().toLowerCase();
+    if (t) vistas.add(t);
+  }
+  return [...vistas];
+}
+
+/**
  * `agulha` aparece em algum dos campos?
  *
  * Compara em duas formas. A normalizada respeita os limites de palavra; a

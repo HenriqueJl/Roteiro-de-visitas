@@ -405,6 +405,16 @@ export async function criarNota(
   return nota;
 }
 
+export async function alternarNota(id: string): Promise<void> {
+  const n = await db.notas.get(id);
+  if (!n) return;
+  await db.notas.update(id, { resolvida: !n.resolvida });
+}
+
+export async function removerNota(id: string): Promise<void> {
+  await db.notas.delete(id);
+}
+
 // ---------------------------------------------------------------------------
 // Edição de roteiro
 // ---------------------------------------------------------------------------
