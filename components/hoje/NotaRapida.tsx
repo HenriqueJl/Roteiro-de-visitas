@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { criarNota } from "@/lib/db";
+import { criarNota } from "@/lib/api";
 
 /** Sheet de captura instantânea: texto, salvar, pronto. */
 export function NotaRapida({

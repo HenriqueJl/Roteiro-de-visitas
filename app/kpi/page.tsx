@@ -2,18 +2,19 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "@/lib/db";
+import { useDados } from "@/components/Dados";
 import { fmtCurto } from "@/lib/datas";
 import { estoqueAtual, fluxoDaSemana, semanaAnteriorA, semanaDe } from "@/lib/kpi";
 import { CartaoAgora, CartaoKpi } from "@/components/kpi/CartaoKpi";
 import { BlocoBackup } from "@/components/kpi/Backup";
 
 export default function Kpi() {
-  const clientes = useLiveQuery(() => db.clientes.toArray(), []);
-  const interacoes = useLiveQuery(() => db.interacoes.toArray(), []);
-  const pedidos = useLiveQuery(() => db.pedidos.toArray(), []);
-  const tarefas = useLiveQuery(() => db.tarefas.toArray(), []);
+  // `tabelas` e não `dados`: esta tela já usa `dados` para o resultado do KPI.
+  const tabelas = useDados();
+  const clientes = tabelas?.clientes;
+  const interacoes = tabelas?.interacoes;
+  const pedidos = tabelas?.pedidos;
+  const tarefas = tabelas?.tarefas;
 
   const carregando =
     clientes === undefined ||

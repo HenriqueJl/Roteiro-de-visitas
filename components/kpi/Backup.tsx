@@ -15,10 +15,10 @@
  */
 
 import { useRef, useState } from "react";
-import { db } from "@/lib/db";
+import { aplicarBackupNoServidor } from "@/lib/api";
+import { useDados } from "@/components/Dados";
 import { fmtInstanteCompleto } from "@/lib/datas";
 import {
-  aplicarBackup,
   baixarCsv,
   baixarJson,
   contarBackup,
@@ -26,8 +26,8 @@ import {
   csvInteracoes,
   csvPedidos,
   csvTarefas,
+  VERSAO_BACKUP,
   lerBackup,
-  montarBackup,
   type Backup,
 } from "@/lib/exportar";
 
@@ -38,18 +38,19 @@ export function BlocoBackup() {
   const [pendente, setPendente] = useState<Backup | null>(null);
   const [aviso, setAviso] = useState<Aviso>(null);
   const [ocupado, setOcupado] = useState(false);
+  const dados = useDados();
 
   async function exportarCsv(qual: "clientes" | "interacoes" | "pedidos" | "tarefas") {
     try {
-      const clientes = await db.clientes.toArray();
-      const porId = new Map(clientes.map((c) => [c.id, c]));
-      if (qual === "clientes") baixarCsv("clientes", csvClientes(clientes));
-      if (qual === "interacoes")
-        baixarCsv("interacoes", csvInteracoes(await db.interacoes.toArray(), porId));
-      if (qual === "pedidos")
-        baixarCsv("pedidos", csvPedidos(await db.pedidos.toArray(), porId));
-      if (qual === "tarefas")
-        baixarCsv("tarefas", csvTarefas(await db.tarefas.toArray(), porId));
+      // Exporta do estado já carregado: o servidor acabou de mandar tudo, então
+      // uma segunda ida à rede só atrasaria o download.
+      const d = dados;
+      if (!d) throw new Error("Dados ainda carregando.");
+      const porId = new Map(d.clientes.map((c) => [c.id, c]));
+      if (qual === "clientes") baixarCsv("clientes", csvClientes(d.clientes));
+      if (qual === "interacoes") baixarCsv("interacoes", csvInteracoes(d.interacoes, porId));
+      if (qual === "pedidos") baixarCsv("pedidos", csvPedidos(d.pedidos, porId));
+      if (qual === "tarefas") baixarCsv("tarefas", csvTarefas(d.tarefas, porId));
       setAviso({ tipo: "ok", texto: "CSV gerado. Veja em Downloads." });
     } catch (e) {
       setAviso({ tipo: "erro", texto: `Falhou: ${(e as Error).message}` });
@@ -58,7 +59,14 @@ export function BlocoBackup() {
 
   async function exportarJson() {
     try {
-      const b = await montarBackup();
+      const d = dados;
+      if (!d) throw new Error("Dados ainda carregando.");
+      const b: Backup = {
+        app: "campo",
+        versao: VERSAO_BACKUP,
+        exportadoEm: new Date().toISOString(),
+        dados: d,
+      };
       baixarJson("backup", b);
       setAviso({
         tipo: "ok",
@@ -86,7 +94,7 @@ export function BlocoBackup() {
     if (!pendente) return;
     setOcupado(true);
     try {
-      const n = await aplicarBackup(pendente);
+      const n = await aplicarBackupNoServidor(pendente.dados);
       setPendente(null);
       setAviso({ tipo: "ok", texto: `${n} registros restaurados.` });
     } catch (e) {

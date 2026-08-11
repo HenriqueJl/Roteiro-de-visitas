@@ -9,7 +9,6 @@
  * que falta. Se o Henrique editar o telefone de um cliente, a edição fica.
  */
 
-import { db, temIndexedDB } from "./db";
 import { agora } from "./datas";
 import {
   CONFIG_PADRAO,
@@ -233,32 +232,9 @@ function montarRoteiro(d: DiaSeed): Roteiro {
  *
  * Retorna quantos registros foram inseridos.
  */
-export async function garantirSeed(): Promise<{ clientes: number; roteiros: number }> {
-  if (!temIndexedDB()) return { clientes: 0, roteiros: 0 };
-
-  return db.transaction("rw", db.clientes, db.roteiros, db.meta, async () => {
-    const criadoEm = agora();
-
-    const idsExistentes = new Set(await db.clientes.toCollection().primaryKeys());
-    const faltantes = CLIENTES_SEED.filter((l) => !idsExistentes.has(l.id));
-    if (faltantes.length) {
-      await db.clientes.bulkAdd(faltantes.map((l) => montarCliente(l, criadoEm)));
-    }
-
-    const roteirosExistentes = new Set(await db.roteiros.toCollection().primaryKeys());
-    const roteirosFaltantes = SEMANA_1.map(montarRoteiro).filter(
-      (r) => !roteirosExistentes.has(r.id),
-    );
-    if (roteirosFaltantes.length) await db.roteiros.bulkAdd(roteirosFaltantes);
-
-    if (!(await db.meta.get("config"))) {
-      await db.meta.put({ chave: "config", valor: CONFIG_PADRAO });
-    }
-    await db.meta.put({
-      chave: "seed",
-      valor: { versao: VERSAO_SEED, aplicadoEm: criadoEm },
-    });
-
-    return { clientes: faltantes.length, roteiros: roteirosFaltantes.length };
-  });
-}
+/**
+ * A carga inicial mudou de lugar: agora é lib/servidor/seed.ts, contra o
+ * Postgres, e roda na primeira chamada de /api/dados. Este arquivo virou só a
+ * fonte dos dados — a lista de clientes e o plano da semana 1 —, consumida pelo
+ * servidor.
+ */

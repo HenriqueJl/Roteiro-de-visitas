@@ -11,7 +11,7 @@
  */
 
 import { useState } from "react";
-import { atualizarPedido, removerPedido } from "@/lib/db";
+import { atualizarPedido, removerPedido } from "@/lib/api";
 import { fmtData, fmtMoeda } from "@/lib/datas";
 import {
   FORMAS_PAGAMENTO,

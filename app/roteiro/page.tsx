@@ -2,15 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useLiveQuery } from "dexie-react-hooks";
+import { useDados } from "@/components/Dados";
 import {
   adicionarParada,
-  db,
   gerarProximaSemana,
   moverParada,
   removerParada,
   transferirParada,
-} from "@/lib/db";
+} from "@/lib/api";
 import { LABEL_MOTIVO, type ResultadoGeracao } from "@/lib/gerador";
 import { fmtCurto, fmtDiaExtenso, hoje } from "@/lib/datas";
 import { linkGoogleMaps, linkWaze } from "@/lib/links";
@@ -43,11 +42,12 @@ export default function TelaRoteiro() {
   const [relatorio, setRelatorio] = useState<ResultadoGeracao | null>(null);
 
 
-  const roteiros = useLiveQuery(
-    async () => (await db.roteiros.toArray()).sort((a, b) => a.data.localeCompare(b.data)),
-    [],
+  const dados = useDados();
+  const roteiros = useMemo(
+    () => dados && [...dados.roteiros].sort((a, b) => a.data.localeCompare(b.data)),
+    [dados],
   );
-  const clientes = useLiveQuery(() => db.clientes.toArray(), []);
+  const clientes = dados?.clientes;
 
   const semanas = useMemo(
     () => [...new Set((roteiros ?? []).map((r) => r.semana))].sort((a, b) => a - b),

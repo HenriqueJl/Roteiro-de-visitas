@@ -12,12 +12,10 @@
  */
 
 import { useEffect, useState } from "react";
-import {
-  lerConfig,
-  registrarInteracao,
-  validarInteracao,
-  type NovaInteracao,
-} from "@/lib/db";
+import { lerConfig, registrarInteracao } from "@/lib/api";
+// A validação de P2 é a MESMA do servidor (lib/dominio.ts). O botão desabilitado
+// é cortesia; quem recusa de verdade é `POST /api/acao`.
+import { validarInteracao, type NovaInteracao } from "@/lib/dominio";
 import { ATALHOS_DATA, addDias, hoje } from "@/lib/datas";
 import { sugestoesProximoPasso } from "@/lib/sugestoes";
 import { Icone } from "@/lib/icones";

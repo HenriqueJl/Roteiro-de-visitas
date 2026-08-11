@@ -16,8 +16,6 @@
  * faz o duplo-clique simplesmente funcionar.
  */
 
-import type { Table } from "dexie";
-import { db, temIndexedDB } from "./db";
 import { fmtData, fmtInstanteCompleto, hoje } from "./datas";
 import {
   LABEL_ESTAGIO,
@@ -237,38 +235,13 @@ const TABELAS = [
   "meta",
 ] as const;
 
-/**
- * Cada tabela do Dexie é tipada com o seu próprio registro, então varrer as
- * sete num laço exige afrouxar o tipo. Fica confinado a esta função: o resto do
- * arquivo continua tipado, e `DadosBackup` é quem garante que os nomes existem.
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const tabela = (nome: (typeof TABELAS)[number]): Table<any, string> => db[nome];
-
-export async function montarBackup(): Promise<Backup> {
-  const [clientes, interacoes, pedidos, notas, tarefas, roteiros, meta] =
-    await Promise.all([
-      db.clientes.toArray(),
-      db.interacoes.toArray(),
-      db.pedidos.toArray(),
-      db.notas.toArray(),
-      db.tarefas.toArray(),
-      db.roteiros.toArray(),
-      db.meta.toArray(),
-    ]);
-  return {
-    app: "campo",
-    versao: VERSAO_BACKUP,
-    exportadoEm: new Date().toISOString(),
-    dados: { clientes, interacoes, pedidos, notas, tarefas, roteiros, meta },
-  };
-}
 
 /**
  * Valida o arquivo escolhido antes de qualquer escrita.
  *
- * Importar é destrutivo, então a checagem é paranoica de propósito: a tela
- * mostra o resumo devolvido aqui e só grava depois de o usuário confirmar.
+ * Restaurar é destrutivo, então a checagem é paranoica de propósito: a tela
+ * mostra o resumo devolvido aqui e só manda ao servidor depois de o usuário
+ * confirmar.
  */
 export function lerBackup(texto: string): Backup {
   let bruto: unknown;
@@ -282,9 +255,7 @@ export function lerBackup(texto: string): Backup {
     throw new Error("Arquivo vazio ou em formato desconhecido.");
   }
   const b = bruto as Partial<Backup>;
-  if (b.app !== "campo") {
-    throw new Error("Este arquivo não é um backup do Campo.");
-  }
+  if (b.app !== "campo") throw new Error("Este arquivo não é um backup do Campo.");
   if (typeof b.versao !== "number" || b.versao > VERSAO_BACKUP) {
     throw new Error(
       `Backup da versão ${String(b.versao)}; este app lê até a ${VERSAO_BACKUP}.`,
@@ -320,21 +291,14 @@ export function contarBackup(b: Backup): number {
 }
 
 /**
- * Substitui tudo pelo conteúdo do backup, numa transação só.
+ * Montar e restaurar saíram daqui.
  *
- * Substituição, não mesclagem: mesclar deixaria registros do estado atual que
- * não existem no arquivo, e o resultado não seria nem o backup nem o que havia
- * antes. Se a transação falhar no meio, o Dexie desfaz e a base fica intacta.
+ * Montar virou leitura do estado que o provedor já carregou — o servidor acabou
+ * de mandar tudo, e ir buscar de novo só atrasaria o download. Restaurar virou a
+ * ação `aplicarBackup` no servidor, dentro de uma transação: não há mais banco no
+ * navegador para escrever. O que sobrou aqui é o que é puro — validar o arquivo
+ * e contar o que ele traz.
  */
-export async function aplicarBackup(b: Backup): Promise<number> {
-  if (!temIndexedDB()) throw new Error("Sem armazenamento local disponível.");
-
-  await db.transaction("rw", TABELAS.map(tabela), async () => {
-    await Promise.all(TABELAS.map((t) => tabela(t).clear()));
-    await Promise.all(TABELAS.map((t) => tabela(t).bulkAdd(b.dados[t])));
-  });
-  return contarBackup(b);
-}
 
 // ---------------------------------------------------------------------------
 // Download

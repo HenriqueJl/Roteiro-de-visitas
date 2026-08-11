@@ -80,6 +80,42 @@ const COLUNAS: Record<string, Record<string, "valor" | "jsonb">> = {
   },
 };
 
+/**
+ * Todas as colunas de cada tabela, para a restauração de backup.
+ *
+ * Necessária por causa do mesmo risco que a lista branca de `atualizar`: o
+ * arquivo de backup vem de fora, e usar `Object.keys(linha)` como nome de coluna
+ * deixaria uma chave forjada escapar das aspas do SQL. Aqui só entra coluna que
+ * está nesta lista; qualquer outra derruba a restauração inteira, em vez de ser
+ * inserida ou ignorada em silêncio.
+ */
+const COLUNAS_COMPLETAS: Record<string, string[]> = {
+  clientes: [
+    "id", "nome", "tipo", "cidade", "bairro", "endereco", "telefone", "lat", "lng",
+    "contatoPrincipal", "funil", "estagio", "status", "produtosInteresse", "tags",
+    "criadoEm", "ultimoContatoEm", "proximoContatoEm", "observacoes",
+  ],
+  interacoes: [
+    "id", "clienteId", "data", "tipo", "produtosApresentados", "contatoFalado",
+    "resultado", "objecao", "objecaoObs", "amostraDeixada", "proximoPasso",
+    "proximoPassoEm", "encerramento", "notas", "duracaoMin", "roteiroId",
+  ],
+  pedidos: [
+    "id", "clienteId", "data", "itens", "valorTotal", "formaPagamento", "prazoDias",
+    "status", "observacoes", "criadoEm", "interacaoId",
+  ],
+  notas: ["id", "texto", "clienteId", "tags", "criadoEm", "resolvida"],
+  tarefas: [
+    "id", "titulo", "clienteId", "vencimentoEm", "origem", "concluida", "criadoEm",
+    "concluidaEm", "interacaoId",
+  ],
+  roteiros: [
+    "id", "semana", "diaSemana", "data", "cidade", "titulo", "paradas", "tardeLivre",
+    "observacao",
+  ],
+  meta: ["chave", "valor"],
+};
+
 async function atualizar(
   c: PoolClient,
   tabela: keyof typeof COLUNAS,
@@ -681,6 +717,58 @@ export const ACOES: Record<string, Acao> = {
        JSON.stringify(copia.paradas), copia.tardeLivre, copia.observacao ?? null],
     );
     return copia;
+  },
+
+  /**
+   * Restaura um backup: substitui tudo, numa transação.
+   *
+   * Substituição e não mesclagem, pelo mesmo motivo da versão local — mesclar
+   * deixaria registros que não estão no arquivo, e o resultado não seria nem o
+   * backup nem o que havia antes. A ordem de inserção respeita as chaves
+   * estrangeiras: cliente antes do que aponta para ele.
+   */
+  async aplicarBackup(p, c) {
+    const d = (p.dados ?? {}) as Record<string, Record<string, unknown>[]>;
+    const tabelas = ["clientes", "interacoes", "pedidos", "notas", "tarefas", "roteiros", "meta"];
+    for (const t of tabelas) {
+      if (d[t] !== undefined && !Array.isArray(d[t])) {
+        throw new Error(`A tabela "${t}" do backup está corrompida.`);
+      }
+    }
+
+    // Apaga na ordem inversa das dependências.
+    for (const t of [...tabelas].reverse()) await c.query(`DELETE FROM ${t}`);
+
+    const JSONB: Record<string, string[]> = {
+      clientes: ["contatoPrincipal", "produtosInteresse", "tags"],
+      interacoes: ["produtosApresentados", "contatoFalado", "amostraDeixada", "encerramento"],
+      pedidos: ["itens"],
+      notas: ["tags"],
+      tarefas: [],
+      roteiros: ["paradas"],
+      meta: ["valor"],
+    };
+
+    let total = 0;
+    for (const t of tabelas) {
+      for (const linha of d[t] ?? []) {
+        const chaves = Object.keys(linha);
+        const desconhecida = chaves.find((k) => !COLUNAS_COMPLETAS[t].includes(k));
+        if (desconhecida) {
+          throw new Error(`Backup traz campo desconhecido em "${t}": "${desconhecida}".`);
+        }
+        const valores = chaves.map((k) =>
+          JSONB[t].includes(k) ? JSON.stringify(linha[k] ?? null) : (linha[k] ?? null),
+        );
+        await c.query(
+          `INSERT INTO ${t} (${chaves.map((k) => `"${k}"`).join(", ")})
+           VALUES (${chaves.map((_, i) => `$${i + 1}`).join(", ")})`,
+          valores,
+        );
+        total += 1;
+      }
+    }
+    return total;
   },
 
   /** Motor da seção 7: lê o estado, chama a função pura e grava os dias novos. */

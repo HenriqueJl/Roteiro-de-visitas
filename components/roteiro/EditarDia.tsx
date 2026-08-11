@@ -11,7 +11,7 @@
  */
 
 import { useState } from "react";
-import { atualizarRoteiro, duplicarRoteiro, reagendarRoteiro, removerRoteiro } from "@/lib/db";
+import { atualizarRoteiro, duplicarRoteiro, reagendarRoteiro, removerRoteiro } from "@/lib/api";
 import { addDias, fmtCurto, fmtDiaExtenso } from "@/lib/datas";
 import type { Roteiro } from "@/lib/types";
 import {

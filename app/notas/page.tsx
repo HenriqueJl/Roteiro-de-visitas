@@ -11,8 +11,8 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useLiveQuery } from "dexie-react-hooks";
-import { alternarNota, atualizarNota, criarNota, db, removerNota } from "@/lib/db";
+import { alternarNota, atualizarNota, criarNota, removerNota } from "@/lib/api";
+import { useDados } from "@/components/Dados";
 import { fmtInstante, fmtRelativo } from "@/lib/datas";
 import { contemBusca, separarEtiquetas } from "@/lib/texto";
 import { EscolherCliente } from "@/components/registro/EscolherCliente";
@@ -39,11 +39,12 @@ export default function Notas() {
   // corrigir uma palavra digitada errado na calçada.
   const [editando, setEditando] = useState<{ id: string; texto: string } | null>(null);
 
-  const notas = useLiveQuery(
-    async () => (await db.notas.toArray()).sort((a, b) => b.criadoEm.localeCompare(a.criadoEm)),
-    [],
+  const dados = useDados();
+  const notas = useMemo(
+    () => dados && [...dados.notas].sort((a, b) => b.criadoEm.localeCompare(a.criadoEm)),
+    [dados],
   );
-  const clientes = useLiveQuery(() => db.clientes.toArray(), []);
+  const clientes = dados?.clientes;
   const porId = useMemo(() => new Map((clientes ?? []).map((c) => [c.id, c])), [clientes]);
 
   const todasEtiquetas = useMemo(() => {

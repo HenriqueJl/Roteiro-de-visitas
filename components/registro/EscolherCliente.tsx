@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "@/lib/db";
+import { useDados } from "@/components/Dados";
 import { contemBusca } from "@/lib/texto";
 import { ICONE_TIPO_CLIENTE, type Cliente } from "@/lib/types";
 import { Icone } from "@/lib/icones";
@@ -22,9 +21,10 @@ export function EscolherCliente({
 }) {
   const [busca, setBusca] = useState("");
 
-  const clientes = useLiveQuery(
-    () => db.clientes.where("status").equals("ativo").toArray(),
-    [],
+  const dados = useDados();
+  const clientes = useMemo(
+    () => dados?.clientes.filter((c) => c.status === "ativo"),
+    [dados],
   );
 
   const lista = useMemo(() => {

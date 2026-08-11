@@ -3,8 +3,8 @@
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useLiveQuery } from "dexie-react-hooks";
-import { alternarTarefa, atualizarCliente, db } from "@/lib/db";
+import { alternarTarefa, atualizarCliente } from "@/lib/api";
+import { useDados } from "@/components/Dados";
 import { diasDesde, fmtData, fmtMoeda, fmtPrazo, fmtRelativo } from "@/lib/datas";
 import { linkGoogleMaps, linkLigar, linkWaze, linkWhatsApp } from "@/lib/links";
 import { FormCliente } from "@/components/clientes/FormCliente";
@@ -37,34 +37,34 @@ function Ficha() {
   const [registroAberto, setRegistroAberto] = useState(false);
   const [editarAberto, setEditarAberto] = useState(false);
 
-  const cliente = useLiveQuery(async () => (await db.clientes.get(id)) ?? null, [id]);
-  const interacoes = useLiveQuery(
-    async () =>
-      (await db.interacoes.where("clienteId").equals(id).toArray()).sort((a, b) =>
-        b.data.localeCompare(a.data),
-      ),
-    [id],
+  const dados = useDados();
+  const cliente = useMemo(
+    () => (dados ? (dados.clientes.find((c) => c.id === id) ?? null) : undefined),
+    [dados, id],
   );
-  const pedidos = useLiveQuery(
-    async () =>
-      (await db.pedidos.where("clienteId").equals(id).toArray()).sort((a, b) =>
-        b.data.localeCompare(a.data),
-      ),
-    [id],
+  const interacoes = useMemo(
+    () =>
+      dados
+        ?.interacoes.filter((i) => i.clienteId === id)
+        .sort((a, b) => b.data.localeCompare(a.data)),
+    [dados, id],
   );
-  const tarefas = useLiveQuery(
-    async () =>
-      (await db.tarefas.where("clienteId").equals(id).toArray())
-        .filter((t) => !t.concluida)
+  const pedidos = useMemo(
+    () =>
+      dados?.pedidos.filter((p) => p.clienteId === id).sort((a, b) => b.data.localeCompare(a.data)),
+    [dados, id],
+  );
+  const tarefas = useMemo(
+    () =>
+      dados
+        ?.tarefas.filter((t) => t.clienteId === id && !t.concluida)
         .sort((a, b) => a.vencimentoEm.localeCompare(b.vencimentoEm)),
-    [id],
+    [dados, id],
   );
-  const notas = useLiveQuery(
-    async () =>
-      (await db.notas.where("clienteId").equals(id).toArray()).sort((a, b) =>
-        b.criadoEm.localeCompare(a.criadoEm),
-      ),
-    [id],
+  const notas = useMemo(
+    () =>
+      dados?.notas.filter((n) => n.clienteId === id).sort((a, b) => b.criadoEm.localeCompare(a.criadoEm)),
+    [dados, id],
   );
 
   const totalComprado = useMemo(

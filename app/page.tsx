@@ -3,8 +3,7 @@
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "@/lib/db";
+import { useDados } from "@/components/Dados";
 import { fmtDiaExtenso, fmtMoeda, fmtPrazo, hoje, paraCivil } from "@/lib/datas";
 import { CardParada } from "@/components/hoje/CardParada";
 import { NotaRapida } from "@/components/hoje/NotaRapida";
@@ -30,33 +29,33 @@ function TelaHoje() {
   const [registro, setRegistro] = useState<AlvoRegistro | null>(null);
   const [escolherAberto, setEscolherAberto] = useState(false);
 
-  // `?? null` distingue "carregando" (undefined) de "não existe" (null).
-  const roteiro = useLiveQuery(
-    async () => (await db.roteiros.where("data").equals(dataAtual).first()) ?? null,
-    [dataAtual],
+  const dados = useDados();
+
+  // `?? null` distinguia "carregando" (undefined) de "não existe" (null) no
+  // useLiveQuery; o provedor mantém o mesmo contrato para as telas não mudarem.
+  const roteiro = useMemo(
+    () => (dados ? (dados.roteiros.find((r) => r.data === dataAtual) ?? null) : undefined),
+    [dados, dataAtual],
   );
-  const proximoDia = useLiveQuery(
-    async () => (await db.roteiros.where("data").above(dataAtual).sortBy("data"))[0] ?? null,
-    [dataAtual],
+  const proximoDia = useMemo(
+    () =>
+      dados
+        ? (dados.roteiros.filter((r) => r.data > dataAtual).sort((a, b) => a.data.localeCompare(b.data))[0] ?? null)
+        : undefined,
+    [dados, dataAtual],
   );
-  const clientes = useLiveQuery(() => db.clientes.toArray(), []);
-  const tarefasAbertas = useLiveQuery(
-    async () =>
-      (await db.tarefas.where("vencimentoEm").belowOrEqual(dataAtual).toArray()).filter(
-        (t) => !t.concluida,
-      ),
-    [dataAtual],
+  const clientes = dados?.clientes;
+  const tarefasAbertas = useMemo(
+    () => dados?.tarefas.filter((t) => !t.concluida && t.vencimentoEm <= dataAtual),
+    [dados, dataAtual],
   );
-  const interacoesDoDia = useLiveQuery(
-    async () =>
-      (await db.interacoes.toArray()).filter(
-        (i) => paraCivil(new Date(i.data)) === dataAtual,
-      ),
-    [dataAtual],
+  const interacoesDoDia = useMemo(
+    () => dados?.interacoes.filter((i) => paraCivil(new Date(i.data)) === dataAtual),
+    [dados, dataAtual],
   );
-  const pedidosDoDia = useLiveQuery(
-    () => db.pedidos.where("data").equals(dataAtual).toArray(),
-    [dataAtual],
+  const pedidosDoDia = useMemo(
+    () => dados?.pedidos.filter((p) => p.data === dataAtual),
+    [dados, dataAtual],
   );
 
   const porId = useMemo(

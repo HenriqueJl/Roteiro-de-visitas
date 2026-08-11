@@ -10,7 +10,7 @@
  */
 
 import { useState } from "react";
-import { atualizarCliente, criarCliente } from "@/lib/db";
+import { atualizarCliente, criarCliente } from "@/lib/api";
 import {
   LABEL_TIPO_CLIENTE,
   TIPOS_CLIENTE,

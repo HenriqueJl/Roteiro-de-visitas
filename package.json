@@ -11,8 +11,6 @@
   },
   "dependencies": {
     "date-fns": "^4.4.0",
-    "dexie": "^4.4.4",
-    "dexie-react-hooks": "^4.4.0",
     "leaflet": "^1.9.4",
     "next": "^15.5.22",
     "pg": "^8.23.0",

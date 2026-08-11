@@ -3,8 +3,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "@/lib/db";
+import { useDados } from "@/components/Dados";
 import { fmtData, fmtMoeda } from "@/lib/datas";
 import { FormPedido } from "@/components/vendas/FormPedido";
 import { Analise } from "@/components/vendas/Analise";
@@ -31,12 +30,13 @@ function TelaVendas() {
   const [pedidoEmEdicao, setPedidoEmEdicao] = useState<Pedido | null>(null);
 
 
-  const clientes = useLiveQuery(() => db.clientes.toArray(), []);
-  const pedidos = useLiveQuery(
-    async () => (await db.pedidos.toArray()).sort((a, b) => b.data.localeCompare(a.data)),
-    [],
+  const dados = useDados();
+  const clientes = dados?.clientes;
+  const pedidos = useMemo(
+    () => dados && [...dados.pedidos].sort((a, b) => b.data.localeCompare(a.data)),
+    [dados],
   );
-  const interacoes = useLiveQuery(() => db.interacoes.toArray(), []);
+  const interacoes = dados?.interacoes;
 
   const porId = useMemo(() => new Map((clientes ?? []).map((c) => [c.id, c])), [clientes]);
 

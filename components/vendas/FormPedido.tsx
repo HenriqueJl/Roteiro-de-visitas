@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import { criarPedido, lerConfig } from "@/lib/db";
+import { criarPedido, lerConfig } from "@/lib/api";
 import { fmtMoeda, hoje } from "@/lib/datas";
 import {
   FORMAS_PAGAMENTO,

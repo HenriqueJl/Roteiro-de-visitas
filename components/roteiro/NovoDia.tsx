@@ -9,7 +9,7 @@
  */
 
 import { useState } from "react";
-import { criarDiaRoteiro } from "@/lib/db";
+import { criarDiaRoteiro } from "@/lib/api";
 import { addDias, diaSemanaDe, fmtDiaExtenso, hoje } from "@/lib/datas";
 import { Campo, Sheet, botaoPrimario, entrada } from "@/components/Sheet";
 

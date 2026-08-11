@@ -16,7 +16,7 @@
  */
 
 import { useMemo, useState } from "react";
-import { distribuirHorariosDoDia, reordenarDiaPorProximidade } from "@/lib/db";
+import { distribuirHorariosDoDia, reordenarDiaPorProximidade } from "@/lib/api";
 import { resumoDaRota } from "@/lib/rota";
 import { Icone } from "@/lib/icones";
 import type { Cliente, Roteiro } from "@/lib/types";

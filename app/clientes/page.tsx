@@ -3,8 +3,9 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useLiveQuery } from "dexie-react-hooks";
-import { atualizarCliente, db, lerConfig } from "@/lib/db";
+import { atualizarCliente } from "@/lib/api";
+import { useDados } from "@/components/Dados";
+import { CONFIG_PADRAO, type Config } from "@/lib/types";
 import { diasDesde } from "@/lib/datas";
 import { contemBusca } from "@/lib/texto";
 import { FormCliente } from "@/components/clientes/FormCliente";
@@ -46,9 +47,16 @@ export default function TelaClientes() {
   // dois lado a lado daria treze colunas para rolar com o dedo.
   const [funil, setFunil] = useState<Funil>("institucional");
 
-  const clientes = useLiveQuery(() => db.clientes.toArray(), []);
-  const config = useLiveQuery(() => lerConfig(), []);
-  const diasAlerta = config?.diasSemContatoAlerta ?? 21;
+  const dados = useDados();
+  const clientes = dados?.clientes;
+  const config = useMemo<Config>(
+    () => ({
+      ...CONFIG_PADRAO,
+      ...((dados?.meta.find((m) => m.chave === "config")?.valor as Partial<Config>) ?? {}),
+    }),
+    [dados],
+  );
+  const diasAlerta = config.diasSemContatoAlerta;
 
   const cidades = useMemo(
     () => [...new Set((clientes ?? []).map((c) => c.cidade))].sort(),

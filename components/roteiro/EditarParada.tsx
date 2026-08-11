@@ -10,7 +10,7 @@
  */
 
 import { useState } from "react";
-import { atualizarParada, reabrirParada, removerParada } from "@/lib/db";
+import { atualizarParada, reabrirParada, removerParada } from "@/lib/api";
 import type { Cliente, ParadaRoteiro } from "@/lib/types";
 import {
   Campo,

@@ -15,7 +15,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { lerConfig, salvarConfig } from "@/lib/db";
+import { lerConfig, salvarConfig } from "@/lib/api";
 import { fmtMoeda } from "@/lib/datas";
 import { Icone } from "@/lib/icones";
 import { CONFIG_PADRAO, LABEL_PRODUTO, PRODUTOS, type Config } from "@/lib/types";
