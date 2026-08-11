@@ -1,21 +1,32 @@
 /**
  * Campo — service worker.
  *
- * Três estratégias, uma por tipo de recurso:
+ * Quatro regras, uma por tipo de recurso:
  *
+ *   /api/*           → SEMPRE a rede, nunca cache
  *   navegação        → rede primeiro, cache como rede de segurança
  *   /_next/static/*  → cache primeiro (os nomes já carregam hash, são imutáveis)
  *   tiles do mapa    → cache primeiro, cache próprio, com teto de tamanho
  *
- * O cache dos tiles é o que faz o mapa sobreviver ao modo avião. Ele é
- * separado do cache do app de propósito: uma atualização da aplicação não deve
- * jogar fora quilômetros de mapa já baixado.
+ * A primeira regra existe porque os dados passaram a vir do servidor. Sem ela, a
+ * regra genérica de "responde do cache e revalida" pegava `GET /api/dados` — e a
+ * segunda abertura do app mostrava o estado da abertura anterior. Pior: dois
+ * aparelhos deixavam de ver o mesmo dado, que é justamente o motivo de existir
+ * banco na nuvem. O bug era silencioso, porque a tela não tem como saber que a
+ * resposta veio do cache.
+ *
+ * O cache dos tiles é o que ainda faz o mapa aparecer sem sinal. Ele é separado
+ * do cache do app de propósito: uma atualização da aplicação não deve jogar fora
+ * quilômetros de mapa já baixado. Note que isso não torna o app utilizável
+ * offline — registrar visita exige servidor. É apenas o desenho do mapa.
  *
  * Escrito à mão em vez de via next-pwa: são ~120 linhas, e a estratégia dos
  * tiles precisaria de configuração personalizada de qualquer forma.
  */
 
-const VERSAO = "v1";
+// v2: a v1 guardou /api/dados no cache do app. Trocar a versão descarta aquele
+// cache envenenado em quem já instalou o app antes desta correção.
+const VERSAO = "v2";
 const CACHE_APP = `campo-app-${VERSAO}`;
 const CACHE_TILES = "campo-tiles-v1"; // sobrevive de propósito à troca de VERSAO
 const MAX_TILES = 800; // ~25 MB. Cobre Três Corações e Varginha com folga.
@@ -160,6 +171,12 @@ self.addEventListener("fetch", (evento) => {
   if (requisicao.method !== "GET") return;
 
   const url = new URL(requisicao.url);
+
+  // Dados nunca vêm do cache. Fica antes de tudo para não haver como escapar
+  // desta regra por outro caminho do roteamento.
+  if (url.origin === self.location.origin && url.pathname.startsWith("/api/")) {
+    return; // sem respondWith: o navegador busca na rede, direto
+  }
 
   if (ehTile(url)) {
     evento.respondWith(tiles(requisicao));
