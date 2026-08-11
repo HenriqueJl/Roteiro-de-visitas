@@ -152,67 +152,12 @@ export async function atualizarCliente(
 // P2 — validação de interação
 // ---------------------------------------------------------------------------
 
-export type NovaInteracao = Omit<Interacao, "id" | "data" | "produtosApresentados"> &
-  Partial<Pick<Interacao, "id" | "data" | "produtosApresentados">>;
-
-/**
- * Retorna a mensagem de erro, ou `null` se a interação pode ser salva.
- * A UI usa isto para desabilitar o botão; `registrarInteracao` usa como trava.
- */
-export function validarInteracao(i: Partial<NovaInteracao>): string | null {
-  if (!i.clienteId) return "Interação sem cliente.";
-  if (!i.resultado) return "Escolha como foi.";
-
-  if (i.amostraDeixada) {
-    const a = i.amostraDeixada;
-    if (!a.produto) return "Escolha o produto da amostra.";
-    if (!a.qtd || a.qtd < 1) return "Informe a quantidade da amostra.";
-    if (!a.retornoEm) return "Informe a data de retorno da amostra.";
-  }
-
-  // Único escape de P2: encerrar o cliente, com motivo.
-  if (i.encerramento) {
-    if (!i.encerramento.motivo?.trim()) {
-      return "Diga por que está encerrando este cliente.";
-    }
-    return null;
-  }
-
-  if (!i.proximoPasso?.trim()) return "Defina o próximo passo.";
-  if (!i.proximoPassoEm) return "Defina a data do próximo passo.";
-  return null;
-}
-
-/**
- * Estágio que a interação sugere. Só avança — nunca retrocede — e nunca
- * inventa: cada regra corresponde a um fato registrado.
- */
-export function estagioSugerido(cliente: Cliente, i: NovaInteracao): Estagio {
-  if (i.encerramento?.status === "perdido") return "perdido";
-
-  const candidatos: Estagio[] = [];
-
-  if (cliente.funil === "institucional") {
-    if (i.contatoFalado?.nome?.trim()) candidatos.push("mapeado");
-    if (i.tipo === "demonstracao") candidatos.push("demo_realizada");
-    if (i.amostraDeixada) candidatos.push("amostra_em_teste");
-    if (i.resultado === "pedido") candidatos.push("cliente");
-  } else {
-    if (i.resultado !== "estabelecimento_fechado") candidatos.push("visitado");
-    if (i.amostraDeixada) candidatos.push("material_deixado");
-    if (i.resultado === "pedido") {
-      const jaComprou =
-        cliente.estagio === "primeiro_pedido" || cliente.estagio === "recompra";
-      candidatos.push(jaComprou ? "recompra" : "primeiro_pedido");
-    }
-  }
-
-  return candidatos.reduce((melhor, c) => {
-    const a = ordemDoEstagio(cliente.funil, c);
-    const b = ordemDoEstagio(cliente.funil, melhor);
-    return a > b ? c : melhor;
-  }, cliente.estagio);
-}
+export {
+  estagioSugerido,
+  validarInteracao,
+  type NovaInteracao,
+} from "./dominio";
+import { estagioSugerido, validarInteracao, type NovaInteracao } from "./dominio";
 
 /**
  * O caminho de escrita crítico do app. Em uma única transação:
