@@ -545,8 +545,14 @@ export interface Tarefa {
 export interface ParadaRoteiro {
   ordem: number;
   clienteId: string;
-  /** "HH:MM" em 24h. Sugestão, não compromisso. */
+  /** "HH:MM" em 24h. Sugestão — salvo quando `fixa`, aí é compromisso. */
   horarioSugerido: string;
+  /**
+   * Hora marcada de verdade ("ela só tem essa janela"). Reordenar por
+   * proximidade não move a parada fixa, e distribuir horários não sobrescreve o
+   * dela — usa como âncora. Ver lib/rota.ts.
+   */
+  fixa?: boolean;
   objetivo: string;
   concluida: boolean;
   interacaoId?: string;

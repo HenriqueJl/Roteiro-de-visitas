@@ -26,8 +26,11 @@ import { Icone } from "@/lib/icones";
 import { EditarDia } from "@/components/roteiro/EditarDia";
 import { EditarParada } from "@/components/roteiro/EditarParada";
 import { NovoDia } from "@/components/roteiro/NovoDia";
+import { FerramentasDia } from "@/components/roteiro/FerramentasDia";
+import { Aviso, useAviso } from "@/components/Aviso";
 
 export default function TelaRoteiro() {
+  const { aviso, avisar } = useAviso();
   const [semana, setSemana] = useState<number | null>(null);
   const [editandoDia, setEditandoDia] = useState(false);
   const [paradaEmEdicao, setParadaEmEdicao] = useState<string | null>(null);
@@ -38,12 +41,7 @@ export default function TelaRoteiro() {
   const [transferindo, setTransferindo] = useState<string | null>(null);
   const [gerando, setGerando] = useState(false);
   const [relatorio, setRelatorio] = useState<ResultadoGeracao | null>(null);
-  const [toast, setToast] = useState("");
 
-  function avisar(m: string) {
-    setToast(m);
-    setTimeout(() => setToast(""), 2500);
-  }
 
   const roteiros = useLiveQuery(
     async () => (await db.roteiros.toArray()).sort((a, b) => a.data.localeCompare(b.data)),
@@ -205,6 +203,10 @@ export default function TelaRoteiro() {
             </p>
           )}
 
+          {editando && (
+            <FerramentasDia dia={dia} porId={porId} aoAvisar={avisar} />
+          )}
+
           <ol className="space-y-2">
             {paradas.map((p, i) => {
               const c = porId.get(p.clienteId);
@@ -233,7 +235,13 @@ export default function TelaRoteiro() {
                         {c.nome}
                       </Link>
                       <p className="text-sm text-tinta-fraca">
-                        {p.horarioSugerido && `${p.horarioSugerido} · `}
+                        {p.horarioSugerido && (
+                          <span className={p.fixa ? "font-bold text-marca" : undefined}>
+                            {p.horarioSugerido}
+                            {p.fixa && " fixo"}
+                          </span>
+                        )}
+                        {p.horarioSugerido && " · "}
                         {c.bairro || c.cidade}
                       </p>
                       {p.objetivo && (
@@ -498,6 +506,10 @@ export default function TelaRoteiro() {
             setEditandoDia(false);
             avisar("Dia apagado.");
           }}
+          aoDuplicado={(data) => {
+            setEditandoDia(false);
+            avisar(`Dia copiado para ${fmtCurto(data)}.`);
+          }}
         />
       )}
 
@@ -515,11 +527,7 @@ export default function TelaRoteiro() {
         );
       })()}
 
-      {toast && (
-        <p className="fixed bottom-24 left-1/2 z-[500] -translate-x-1/2 whitespace-nowrap rounded-full bg-tinta px-4 py-2 text-sm font-semibold text-white shadow-lg">
-          {toast}
-        </p>
-      )}
+      <Aviso texto={aviso} />
     </main>
   );
 }

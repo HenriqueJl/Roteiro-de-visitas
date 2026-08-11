@@ -12,6 +12,7 @@ import { EscolherCliente } from "@/components/registro/EscolherCliente";
 import { SheetRegistro, type AlvoRegistro } from "@/components/registro/SheetRegistro";
 import type { Cliente, Tarefa } from "@/lib/types";
 import { Icone } from "@/lib/icones";
+import { Aviso, useAviso } from "@/components/Aviso";
 
 /**
  * Tela Hoje — a mais importante do app (seção 6.1).
@@ -23,16 +24,11 @@ function TelaHoje() {
   const params = useSearchParams();
   const dataAtual = params.get("data") ?? hoje();
 
+  const { aviso, avisar } = useAviso();
   const [notaAberta, setNotaAberta] = useState(false);
   const [fabAberto, setFabAberto] = useState(false);
   const [registro, setRegistro] = useState<AlvoRegistro | null>(null);
   const [escolherAberto, setEscolherAberto] = useState(false);
-  const [toast, setToast] = useState("");
-
-  function avisar(msg: string) {
-    setToast(msg);
-    setTimeout(() => setToast(""), 2500);
-  }
 
   // `?? null` distingue "carregando" (undefined) de "não existe" (null).
   const roteiro = useLiveQuery(
@@ -307,11 +303,7 @@ function TelaHoje() {
         />
       )}
 
-      {toast && (
-        <p className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 whitespace-nowrap rounded-full bg-tinta px-4 py-2 text-sm font-semibold text-white shadow-lg">
-          {toast}
-        </p>
-      )}
+      <Aviso texto={aviso} />
     </main>
   );
 }

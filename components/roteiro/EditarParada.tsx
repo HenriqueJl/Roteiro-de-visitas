@@ -34,12 +34,17 @@ export function EditarParada({
 }) {
   const [horario, setHorario] = useState(parada.horarioSugerido);
   const [objetivo, setObjetivo] = useState(parada.objetivo);
+  // Estado local como os outros campos: tudo desta tela é gravado no Salvar.
+  // Gravar a caixa no clique deixava metade do formulário salvando na hora e a
+  // outra metade não — e não havia como desistir da mudança.
+  const [fixa, setFixa] = useState(!!parada.fixa);
   const [confirmando, setConfirmando] = useState(false);
 
   async function salvar() {
     await atualizarParada(roteiroId, parada.clienteId, {
       horarioSugerido: horario,
       objetivo: objetivo.trim(),
+      fixa,
     });
     aoFechar();
   }
@@ -94,6 +99,22 @@ export function EditarParada({
           className={entrada}
         />
       </Campo>
+
+      <label className="flex items-start gap-2.5 rounded-md border border-borda bg-fundo p-3">
+        <input
+          type="checkbox"
+          checked={fixa}
+          onChange={(e) => setFixa(e.target.checked)}
+          className="mt-0.5 h-5 w-5 shrink-0 accent-marca"
+        />
+        <span>
+          <span className="text-sm font-bold">Hora marcada</span>
+          <span className="mt-0.5 block text-xs text-tinta-fraca">
+            Compromisso de verdade. Reordenar por proximidade não move esta parada,
+            e distribuir horários não reescreve o horário dela — usa como âncora.
+          </span>
+        </span>
+      </label>
 
       <Campo rotulo="Objetivo da visita" dica="O que você vai fazer ali. Aparece no card.">
         <textarea

@@ -19,20 +19,17 @@ import {
   type Pedido,
 } from "@/lib/types";
 import { Icone } from "@/lib/icones";
+import { Aviso, useAviso } from "@/components/Aviso";
 
 function TelaVendas() {
   const params = useSearchParams();
   const clientePreSelecionado = params.get("cliente");
 
+  const { aviso, avisar } = useAviso(3000);
   const [alvo, setAlvo] = useState<Cliente | null>(null);
   const [escolherAberto, setEscolherAberto] = useState(false);
-  const [toast, setToast] = useState("");
   const [pedidoEmEdicao, setPedidoEmEdicao] = useState<Pedido | null>(null);
 
-  function avisar(m: string) {
-    setToast(m);
-    setTimeout(() => setToast(""), 3000);
-  }
 
   const clientes = useLiveQuery(() => db.clientes.toArray(), []);
   const pedidos = useLiveQuery(
@@ -173,11 +170,7 @@ function TelaVendas() {
         />
       )}
 
-      {toast && (
-        <p className="fixed bottom-24 left-1/2 z-[60] -translate-x-1/2 whitespace-nowrap rounded-full bg-tinta px-4 py-2 text-sm font-semibold text-white shadow-lg">
-          {toast}
-        </p>
-      )}
+      <Aviso texto={aviso} />
     </main>
   );
 }

@@ -20,10 +20,11 @@ import { fmtMoeda } from "@/lib/datas";
 import { Icone } from "@/lib/icones";
 import { CONFIG_PADRAO, LABEL_PRODUTO, PRODUTOS, type Config } from "@/lib/types";
 import { Campo, entrada } from "@/components/Sheet";
+import { Aviso, useAviso } from "@/components/Aviso";
 
 export default function Ajustes() {
+  const { aviso, avisar } = useAviso(1500);
   const [cfg, setCfg] = useState<Config | null>(null);
-  const [aviso, setAviso] = useState("");
 
   useEffect(() => {
     lerConfig().then(setCfg);
@@ -32,8 +33,7 @@ export default function Ajustes() {
   async function mudar(patch: Partial<Config>) {
     const novo = await salvarConfig(patch);
     setCfg(novo);
-    setAviso("Salvo.");
-    setTimeout(() => setAviso(""), 1500);
+    avisar("Salvo.");
   }
 
   if (!cfg) return <p className="p-8 text-center text-tinta-fraca">Carregando…</p>;
@@ -205,11 +205,7 @@ export default function Ajustes() {
           Voltar tudo ao padrão
         </button>
 
-        {aviso && (
-          <p className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-md bg-tinta px-4 py-2 text-sm font-semibold text-white shadow-lg">
-            {aviso}
-          </p>
-        )}
+        <Aviso texto={aviso} />
       </div>
     </main>
   );

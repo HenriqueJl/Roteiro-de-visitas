@@ -27,6 +27,11 @@ import {
 } from "./datas";
 import { gerarSemana, type ResultadoGeracao } from "./gerador";
 import {
+  distribuirHorarios,
+  renumerar,
+  reordenarPorProximidade,
+} from "./rota";
+import {
   CONFIG_PADRAO,
   LABEL_PRODUTO,
   funilDoTipo,
@@ -40,6 +45,7 @@ import {
   type Nota,
   type ParadaRoteiro,
   type DataCivil,
+  type DiaSemana,
   type Pedido,
   type Roteiro,
   type Tarefa,
@@ -450,7 +456,7 @@ export async function atualizarRoteiro(
 export async function atualizarParada(
   roteiroId: string,
   clienteId: string,
-  patch: Partial<Pick<ParadaRoteiro, "horarioSugerido" | "objetivo">>,
+  patch: Partial<Pick<ParadaRoteiro, "horarioSugerido" | "objetivo" | "fixa">>,
 ): Promise<void> {
   const r = await db.roteiros.get(roteiroId);
   if (!r) return;
@@ -472,6 +478,137 @@ export async function reabrirParada(roteiroId: string, clienteId: string): Promi
 
 export async function removerRoteiro(id: string): Promise<void> {
   await db.roteiros.delete(id);
+}
+
+/**
+ * Semana e dia da semana derivados de uma data, na numeração de quem já existe.
+ * Compartilhado por criar, reagendar e duplicar — se cada um contasse a semana
+ * do seu jeito, as abas passariam a discordar da data.
+ */
+async function posicaoNaAgenda(
+  data: DataCivil,
+): Promise<{ semana: number; diaSemana: DiaSemana }> {
+  const diaSemana = diaSemanaDe(data);
+  if (diaSemana === 0) throw new Error("O roteiro só prevê dias úteis.");
+
+  const existentes = await db.roteiros.toArray();
+  let semana = 1;
+  if (existentes.length) {
+    const base = existentes.reduce((m, r) => (r.data < m.data ? r : m), existentes[0]);
+    semana =
+      base.semana +
+      Math.floor(diffDias(segundaDaSemana(base.data), segundaDaSemana(data)) / 7);
+  }
+  return { semana, diaSemana };
+}
+
+/** Muda a data do dia inteiro — o feriado que empurra a semana toda. */
+export async function reagendarRoteiro(id: string, novaData: DataCivil): Promise<void> {
+  const r = await db.roteiros.get(id);
+  if (!r || r.data === novaData) return;
+
+  if (await db.roteiros.where("data").equals(novaData).first()) {
+    throw new Error("Já existe um dia nessa data.");
+  }
+  const { semana, diaSemana } = await posicaoNaAgenda(novaData);
+  await db.roteiros.update(id, { data: novaData, semana, diaSemana });
+}
+
+/**
+ * Copia o dia para outra data. As paradas vão como novas: sem `concluida` e sem
+ * `interacaoId` — a visita da semana passada não foi feita na semana que vem.
+ *
+ * É o atalho para a visita que se repete, que na prática é a maior parte do
+ * follow-up: "a rota de terça no Centro vale para a terça que vem".
+ */
+export async function duplicarRoteiro(id: string, novaData: DataCivil): Promise<Roteiro> {
+  const r = await db.roteiros.get(id);
+  if (!r) throw new Error("Dia não encontrado.");
+  if (await db.roteiros.where("data").equals(novaData).first()) {
+    throw new Error("Já existe um dia nessa data.");
+  }
+
+  const { semana, diaSemana } = await posicaoNaAgenda(novaData);
+  const copia: Roteiro = {
+    ...r,
+    id: novoId(),
+    data: novaData,
+    semana,
+    diaSemana,
+    paradas: r.paradas.map((p) => ({
+      ordem: p.ordem,
+      clienteId: p.clienteId,
+      horarioSugerido: p.horarioSugerido,
+      objetivo: p.objetivo,
+      fixa: p.fixa,
+      concluida: false,
+    })),
+  };
+  await db.roteiros.add(copia);
+  return copia;
+}
+
+/**
+ * Reordena o dia por proximidade, respeitando as fixas.
+ * Devolve quantas paradas trocaram de lugar — a tela usa para dizer se o toque
+ * mudou algo ou se a rota já estava boa.
+ */
+export async function reordenarDiaPorProximidade(roteiroId: string): Promise<number> {
+  const r = await db.roteiros.get(roteiroId);
+  if (!r) return 0;
+
+  const clientes = await db.clientes.bulkGet(r.paradas.map((p) => p.clienteId));
+  const posicao = new Map<string, { lat: number; lng: number }>();
+  for (const c of clientes) {
+    if (c?.lat != null && c.lng != null) posicao.set(c.id, { lat: c.lat, lng: c.lng });
+  }
+
+  const antes = [...r.paradas].sort((a, b) => a.ordem - b.ordem).map((p) => p.clienteId);
+  const novas = reordenarPorProximidade(r.paradas, (id) => posicao.get(id));
+  await db.roteiros.update(roteiroId, { paradas: novas });
+
+  const depois = novas.map((p) => p.clienteId);
+  return antes.reduce((n, id, i) => (depois[i] === id ? n : n + 1), 0);
+}
+
+/** Preenche os horários do dia a partir de um início, a cada N minutos. */
+export async function distribuirHorariosDoDia(
+  roteiroId: string,
+  inicio: string,
+  intervaloMin: number,
+): Promise<void> {
+  const r = await db.roteiros.get(roteiroId);
+  if (!r) return;
+  await db.roteiros.update(roteiroId, {
+    paradas: distribuirHorarios(r.paradas, inicio, intervaloMin),
+  });
+}
+
+/** Acrescenta vários clientes de uma vez, ignorando os que já estão no dia. */
+export async function adicionarParadas(
+  roteiroId: string,
+  clienteIds: string[],
+): Promise<number> {
+  const r = await db.roteiros.get(roteiroId);
+  if (!r) return 0;
+
+  const jaTem = new Set(r.paradas.map((p) => p.clienteId));
+  const novos = clienteIds.filter((id) => !jaTem.has(id));
+  if (!novos.length) return 0;
+
+  await db.roteiros.update(roteiroId, {
+    paradas: renumerar([
+      ...r.paradas,
+      ...novos.map((clienteId, i) => ({
+        ordem: r.paradas.length + i + 1,
+        clienteId,
+        horarioSugerido: "",
+        objetivo: "",
+        concluida: false,
+      })),
+    ]),
+  });
+  return novos.length;
 }
 
 /**
@@ -570,11 +707,6 @@ export async function removerInteracao(id: string): Promise<void> {
 // ---------------------------------------------------------------------------
 // Edição de roteiro
 // ---------------------------------------------------------------------------
-
-/** Renumera `ordem` para 1..n depois de qualquer mexida na lista. */
-function renumerar(paradas: ParadaRoteiro[]): ParadaRoteiro[] {
-  return paradas.map((p, i) => ({ ...p, ordem: i + 1 }));
-}
 
 export async function moverParada(
   roteiroId: string,
