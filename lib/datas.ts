@@ -75,6 +75,18 @@ export function segundaDaSemana(d: DataCivil): DataCivil {
   return addDias(d, -recuo);
 }
 
+/**
+ * A próxima segunda-feira — hoje, se hoje já for segunda.
+ *
+ * É o que ancora o roteiro inicial: as datas do seed não podem ser fixas, senão
+ * quem abre o app depois daquela semana encontra um plano vencido.
+ */
+export function proximaSegunda(base: DataCivil = hoje()): DataCivil {
+  const dow = deCivil(base).getDay(); // 0=dom
+  if (dow === 1) return base;
+  return addDias(base, dow === 0 ? 1 : 8 - dow);
+}
+
 /** Os cinco dias úteis a partir de uma segunda-feira. */
 export function diasUteisDaSemana(segunda: DataCivil): DataCivil[] {
   return [0, 1, 2, 3, 4].map((i) => addDias(segunda, i));

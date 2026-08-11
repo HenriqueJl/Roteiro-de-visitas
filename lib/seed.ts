@@ -93,7 +93,7 @@ export const CLIENTES_SEED: LinhaSeed[] = [
 
 type ParadaSeed = [clienteId: string, horario: string, objetivo: string];
 
-interface DiaSeed {
+export interface DiaSeed {
   diaSemana: DiaSemana;
   data: string;
   cidade: string;
@@ -103,7 +103,7 @@ interface DiaSeed {
   paradas: ParadaSeed[];
 }
 
-const SEMANA_1: DiaSeed[] = [
+export const SEMANA_1: DiaSeed[] = [
   {
     diaSemana: 1,
     data: "2026-08-03",
